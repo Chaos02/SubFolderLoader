@@ -1,0 +1,30 @@
+modLoader="javafml"
+loaderVersion="[39,40)"
+license="GPL-3.0"
+issueTrackerURL="github.com/Chaos02/TechAttack/issues"
+
+[[mods]]
+modId="techattack"
+version="${file.jarVersion}"
+displayName="TechAttack modpack"
+updateJSONURL="github.com/Chaos02/TechAttack/update.json"
+displayURL="github.com/Chaos02/TechAttack"
+logoFile="TechAttack.png"
+credits="Credits to all the mod and resourcepack authors." 
+authors="Chaos_02" 
+description='''
+Provides modpack version data
+'''
+
+[[dependencies.techattack]]
+    modId="forge"
+    mandatory=true
+    versionRange="[39,40)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.techattack]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.18,1.19)"
+    ordering="NONE"
+    side="BOTH"
