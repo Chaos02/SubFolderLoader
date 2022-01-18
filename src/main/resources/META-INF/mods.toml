@@ -2,6 +2,7 @@ modLoader="javafml"
 loaderVersion="[39,40)"
 license="GPL-3.0"
 issueTrackerURL="https://github.com/Chaos02/SubFolderLoader/issues"
+showAsResourcePack=false
 
 [[mods]]
 modId="structuredmodloader"
