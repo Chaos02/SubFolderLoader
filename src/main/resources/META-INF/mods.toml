@@ -1,14 +1,14 @@
 modLoader="javafml"
 loaderVersion="[39,40)"
 license="GPL-3.0"
-issueTrackerURL="github.com/Chaos02/SubFolderLoader/issues"
+issueTrackerURL="https://github.com/Chaos02/SubFolderLoader/issues"
 
 [[mods]]
 modId="structuredmodloader"
 version="${file.jarVersion}"
 displayName="StructuredModLoader"
-updateJSONURL="github.com/Chaos02/SubFolderLoader/update.json"
-displayURL="github.com/Chaos02/SubFolderLoader"
+updateJSONURL="https://github.com/Chaos02/SubFolderLoader/update.json"
+displayURL="https://github.com/Chaos02/SubFolderLoader"
 logoFile="StructuredModLoader.png"
 credits="" 
 authors="Chaos_02" 
