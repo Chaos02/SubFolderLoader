@@ -17,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.stream.Collectors;
 
-@Mod("StructuredModLoader")
+@Mod("structuredmodloader")
 public class StructuredModLoader
 {
 
