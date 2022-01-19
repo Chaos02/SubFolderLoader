@@ -1,0 +1,19 @@
+{
+  "homepage": "https://github.com/Chaos02/SubFolderLoader",
+  "1.18": {
+    "0.1": "Initial Release, No known function",
+    "0.2": "Code has been written, likely not working."
+		// List all versions of your mod for the given Minecraft version, along with their changelogs
+  },
+	"promos": {
+		"1.18-latest": "0.2.0",
+		"1.19-latest": "0.2.0",
+		// Declare the latest "bleeding-edge" version of your mod for the given Minecraft version
+		"1.18-recommended": "1.0.0"
+		// Declare the latest "stable" version of your mod for the given Minecraft version
+  }
+}
+//Given a version number MAJOR.MINOR.PATCH, increment the:
+//	MAJOR version when you make incompatible API changes,
+//	MINOR version when you add functionality in a backwards compatible manner, and
+//	PATCH version when you make backwards compatible bug fixes.
