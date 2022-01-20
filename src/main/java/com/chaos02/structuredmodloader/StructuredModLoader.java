@@ -62,7 +62,8 @@ public class StructuredModLoader {
         	File[] subDirs = new File("mods/").listFiles(File::isDirectory);
         	
         	for (int j = 0; j < subDirs.length; j++) {
-        		if (!Arrays.stream(ignorePath).anyMatch(subDirs[j]::equals)) {
+        		if (!SMLConfig.ignoreDir.get().contains(subDirs[j].toString())) {
+        			LOGGER.info("Searching for mods in" + subDirs[j]);
 			        // Get all the files in mod folder
 			        File[] mods = new File("mod").listFiles();
 			
@@ -70,7 +71,7 @@ public class StructuredModLoader {
 			            // Skip if the file is not a jar
 			            if (!mods[i].getName().endsWith(".jar"))
 			                continue;
-			
+			            LOGGER.info("Loading" + mods[i]);
 			            // Create a JarFile
 			            JarFile jarFile = new JarFile(mods[i]);
 			
@@ -79,6 +80,9 @@ public class StructuredModLoader {
 			
 			            // Create a URL for the jar
 			            URL[] urls = { new URL("jar:file:" + mods[i].getAbsolutePath() +"!/") };
+			            
+			            // ModLoader here
+			            
 			            URLClassLoader cl = URLClassLoader.newInstance(urls); // auto added URLClassLoader type??
 			
 			            while (e.hasMoreElements()) {
