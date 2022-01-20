@@ -1,5 +1,6 @@
 package com.chaos02.structuredmodloader;
 
+import net.minecraftforge.client.loading.ClientModLoader;
 //import net.minecraft.world.level.block.Block;
 //import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
@@ -49,69 +50,72 @@ public class StructuredModLoader {
         LOGGER.info("StructuredModLoader installed!");
         LOGGER.info("Loading Config now!");
         
+        // Cast Config List to Array
+    	String[] ignorePath = new String[SMLConfig.ignoreDir.get().size()];
+    	for(int i = 0; i < SMLConfig.ignoreDir.get().size(); i++) ignorePath[i] = SMLConfig.ignoreDir.get().get(i);
+    	
         
-        LOGGER.info("Loading subfolders not in config!");
         
-        try {
-        	
-        	// Cast Config List to Array
-        	String[] ignorePath = new String[SMLConfig.ignoreDir.get().size()];
-        	for(int i = 0; i < SMLConfig.ignoreDir.get().size(); i++) ignorePath[i] = SMLConfig.ignoreDir.get().get(i);
-        	
-        	// wenn ordnername nicht in array ist
-        	File[] subDirs = new File("mods/").listFiles(File::isDirectory);
-        	
-        	for (int j = 0; j < subDirs.length; j++) {
-        		if (!SMLConfig.ignoreDir.get().contains(subDirs[j].toString())) {
-        			LOGGER.info("Searching for mods in" + subDirs[j]);
-			        // Get all the files in mod folder
-			        File[] mods = new File("mod").listFiles();
-			
-			        for (int i=0; i<mods.length; i++) {
-			            // Skip if the file is not a jar
-			            if (!mods[i].getName().endsWith(".jar"))
-			                continue;
-			            LOGGER.info("Loading" + mods[i]);
-			            // Create a JarFile
-			            JarFile jarFile = new JarFile(mods[i]);
-			
-			            // Get the entries
-			            Enumeration e = jarFile.entries();
-			
-			            // Create a URL for the jar
-			            URL[] urls = { new URL("jar:file:" + mods[i].getAbsolutePath() +"!/") };
-			            
-			            // ModLoader here
-			            
-			            URLClassLoader cl = URLClassLoader.newInstance(urls); // auto added URLClassLoader type??
-			
-			            while (e.hasMoreElements()) {
-			                JarEntry je = (JarEntry) e.nextElement();
-			
-			                // Skip directories
-			                if(je.isDirectory() || !je.getName().endsWith(".class")) {
-			                    continue;
-			                }
-			
-			                // -6 because of .class
-			                String className = je.getName().substring(0,je.getName().length()-6);
-			                className = className.replace('/', '.');
-			
-			                // Load the class
-			                Class c = cl.loadClass(className);
-			            }
-			        }
-			    } else {
-			    	LOGGER.info("Skipping " + subDirs[j] + " because of config");
-			    }
-		    }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        LOGGER.info("Loading subfolders that are NOT in config!");
+        
+        recurseJarLoader(new File("mods/"));
 
     }
+    
+    private void jarLoader(File file) {
+        try {
+	        // Create a JarFile
+	        JarFile jarFile = new JarFile(file);
+	
+	        // Get the entries
+	        Enumeration e = jarFile.entries();
+	
+	        // Create a URL for the jar
+	        URL[] url = { new URL("jar:file:" + file.getAbsolutePath() +"!/") };
+	        
+	        // ModLoader here
+	        
+	        URLClassLoader cl = URLClassLoader.newInstance(url); // auto added URLClassLoader type??
+	
+	        while (e.hasMoreElements()) {
+	            JarEntry je = (JarEntry) e.nextElement();
+	
+	            // Skip directories
+	            if(je.isDirectory() || !je.getName().endsWith(".class")) {
+	                continue;
+	            }
+	
+	            // -6 because of .class
+	            String className = je.getName().substring(0,je.getName().length()-6);
+	            className = className.replace('/', '.');
+	
+	            // Load the class
+	            Class c = cl.loadClass(className);
+	        }
+		} catch (Exception e) {
+		    //LOGGER.fatal(
+		    		e.printStackTrace();
+		}
+    }
+    
+    private void recurseJarLoader(File dir) {
+
+    	File[] subFiles = dir.listFiles(File::isFile);
+    	for (int i2 = 0; i2 < subFiles.length; i2++) { // '-'
+    		jarLoader(subFiles[i2]);
+    	}
+    	
+    	File[] subDirs = dir.listFiles(File::isDirectory);
+    	for (int j = 0 ; j < subDirs.length; j++) { // Multithread the queuing for ModLoader
+    		if (!SMLConfig.ignoreDir.get().contains(subDirs[j].toString())) {
+    			LOGGER.info("Searching for mods in >" + subDirs[j].toString() + "<");
+		        recurseJarLoader(subDirs[j]);	    
+    		} else {
+		    	LOGGER.info("Skipping >" + subDirs[j].toString() + "< because of config");
+		    }
+	    }
+    }
+        	
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
