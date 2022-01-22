@@ -33,7 +33,7 @@ public class StructuredModLoader extends net.minecraftforge.fml.loading.moddisco
     }
 
     @SubscribeEvent
-    private void setup(final FMLCommonSetupEvent event) {
+    public void setup(final FMLCommonSetupEvent event) {
         // some preinit code
         LOGGER.info("StructuredModLoader installed!");
         LOGGER.info("Loading Config now!");
@@ -69,14 +69,14 @@ public class StructuredModLoader extends net.minecraftforge.fml.loading.moddisco
     	
     	if (dir != FMLPaths.MODSDIR.get().toFile()) {
 	    	File[] subFiles = dir.listFiles(File::isFile);
-	    	for (int i2 = 0; i2 < subFiles.length; i2++) { // '-'
+	    	for (int i2 = 0; i2 < subFiles.length; i2++) {
 	    		jarLoader(subFiles[i2]);
 	    	}
     	}
     	
     	File[] subDirs = dir.listFiles(File::isDirectory);
     	if (subDirs.length != 0) {
-	    	for (int j = 0 ; j < subDirs.length; j++) { // Multithread the queuing for ModLoader
+	    	for (int j = 0 ; j < subDirs.length; j++) {
 	    		if (!SMLConfig.ignoreDir.get().contains(subDirs[j].toString())) {
 	    			LOGGER.info("Searching for mods in >" + subDirs[j] + "<");
 			        recurseJarLoader(subDirs[j]);
@@ -96,32 +96,5 @@ public class StructuredModLoader extends net.minecraftforge.fml.loading.moddisco
         // do something when the server starts
         LOGGER.info("Server starting.");
     }
-    
 
-    /*
-	public class CommonProxy {
-		static String[] configStrings;
-
-		private static void preInit(FMLCommonSetupEvent evt) {
-			Configuration config = new Configuration(event.getSuggestedConfigurationFile());
-			config.load();
-			
-			String comment = "Default subdirectories to be ignored:";
-			
-			String[] defaultIgnore = new String[3];
-			
-			defaultIgnore[0] = "ignore";
-			defaultIgnore[1] = "*unstable*";
-			defaultIgnore[2] = "*disable*";
-			
-			configStrings = config.getStringList("ConfigItemName", "ConfigCategoryName", defaultIgnore, comment);
-				 
-			config.save();
-		}
-	}
-*/
-
-/*
-
-*/
 }
