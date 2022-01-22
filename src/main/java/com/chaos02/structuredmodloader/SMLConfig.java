@@ -18,12 +18,12 @@ import net.minecraftforge.common.ForgeConfigSpec.*;
 
 public class SMLConfig {
 	
-	public static final ForgeConfigSpec GENERAL_SPEC;
+	public static final ForgeConfigSpec SML_SPEC;
 	
 	static {
 		ForgeConfigSpec.Builder configBuilder = new ForgeConfigSpec.Builder();
 		setupConfig(configBuilder);
-		GENERAL_SPEC = configBuilder.build();
+		SML_SPEC = configBuilder.build();
 	}
 	
 	public static ConfigValue<List<? extends String>> ignoreDir;
@@ -41,9 +41,6 @@ public class SMLConfig {
         builder.pop();
     }
 	
-	public SMLConfig(final FMLCommonSetupEvent evt) {
-		ModLoadingContext.get().registerConfig(Type.COMMON, GENERAL_SPEC, "StructuredModLoader.toml");
-	}
 
     @SubscribeEvent
     public static void onLoad(final ModConfigEvent.Loading configEvent) {
