@@ -11,18 +11,32 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.LogMarkers;
+import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
+import net.minecraftforge.fml.loading.moddiscovery.ModFile;
+import net.minecraftforge.fml.loading.moddiscovery.ModFileParser;
+import net.minecraftforge.fml.loading.moddiscovery.ModJarMetadata;
 import net.minecraftforge.forgespi.locating.IModFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import cpw.mods.jarhandling.JarMetadata;
+import cpw.mods.jarhandling.SecureJar;
+
 import java.io.File;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
+import java.util.jar.Manifest;
+import java.util.stream.Stream;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("structuredmodloader")
-public class StructuredModLoader extends net.minecraftforge.fml.loading.moddiscovery.MinecraftLocator {
+public abstract class StructuredModLoader extends net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator {
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
+    
 
     public StructuredModLoader() {
         // Register the setup method for modloading
@@ -44,26 +58,37 @@ public class StructuredModLoader extends net.minecraftforge.fml.loading.moddisco
     	String[] ignorePath = new String[SMLConfig.ignoreDir.get().size()];
     	for(int i = 0; i < SMLConfig.ignoreDir.get().size(); i++) ignorePath[i] = SMLConfig.ignoreDir.get().get(i);
     	
-        LOGGER.info("Ignoring >" + ignorePath.toString() + "< keyworsds	");
+        LOGGER.info("Ignoring >" + String.join(",", ignorePath) + "< keyworsds	");
         
         LOGGER.info("Loading subfolders that are NOT in config!");
         
         recurseJarLoader(FMLPaths.MODSDIR.get().toFile());
+        
 
     }
     
-    public List<IModFile> ownOtherMods;
+    
+    List<Path> ownOtherMods;
+    
     
     private void jarLoader(File file) {
-    	ownOtherMods.add((IModFile) file);
+    	ownOtherMods.add(file.toPath());
     }
+    
+	public Stream<Path> scanCandidates() {
+		return ownOtherMods.stream();
+	}
+    	
+    List<IModFile> subDirMods = this.scanMods();
+    
     
     @Override
     public List<IModFile> scanMods() {
     	List<IModFile> artifacts = super.scanMods();
-    	artifacts.addAll(ownOtherMods);
+    	artifacts.addAll(subDirMods);
     	return artifacts;
     }
+    
     
     private void recurseJarLoader(File dir) {
     	
