@@ -1,14 +1,15 @@
 {
-  "homepage": "https://github.com/Chaos02/SubFolderLoader",
+	"homepage": "https://github.com/Chaos02/SubFolderLoader",
 	"promos": {
-		"1.18-latest": "0.3.1",
+		"1.18-latest": "0.9.0",
 		"1.19-latest": "1.0.0",
 		"1.18-recommended": "1.0.0"
-  },
-  "1.18": {
-    "0.1.0": "Initial Release, No known function",
-    "0.2.0": "Code has been written, likely not working.",
+	},
+	"1.18": {
+		"0.1.0": "Initial Release, No known function",
+		"0.2.0": "Code has been written, likely not working.",
 		"0.3.0": "FML ModLoader class implemented, expected to be working",
-		"0.3.1": "Overriden scanCandidates to include own mod finder and scanMods to add ownMods to the attribues that define the launched Minecraft"
-  }
+		"0.3.1": "Overriden scanCandidates to include own mod finder and scanMods to add ownMods to the attribues that define the launched Minecraft",
+		"0.9.0": "Successfully loading mods from sub directories!" 
+	}
 }

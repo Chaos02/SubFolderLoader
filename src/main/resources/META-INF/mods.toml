@@ -11,7 +11,7 @@ displayName="StructuredModLoader"
 updateJSONURL="https://raw.githubusercontent.com/Chaos02/SubFolderLoader/main/update.json"
 displayURL="https://github.com/Chaos02/SubFolderLoader"
 logoFile="StructuredModLoader.png"
-credits="stiebi99#2124 on Discord" 
+credits="stiebi99#2124 on Discord without whom it would not have been possible to create this mod!" 
 authors="Chaos_02" 
 description='''
 Loads mod files from configurable subfolders 

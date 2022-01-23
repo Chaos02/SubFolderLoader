@@ -13,7 +13,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '0.3.0'
+version = '0.9.0'
 group = 'com.chaos02.structuredmodloader' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'StructuredModLoader'
 
@@ -149,7 +149,7 @@ jar {
         attributes([
                 "Specification-Title"     : "structuredmodloader",
                 "Specification-Vendor"    : "Chaos_02",
-                "Specification-Version"   : "0.3.0", // We are version 1 of ourselves
+                "Specification-Version"   : "0.9.0", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.jar.archiveVersion,
                 "Implementation-Vendor"   : "Chaos_02",
