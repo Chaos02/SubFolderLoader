@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -22,11 +21,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.forgespi.locating.IModFile;
+import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
 @Mod("structuredmodloader")
-public class StructuredModLoader implements IModLocator {
+public class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -36,7 +35,7 @@ public class StructuredModLoader implements IModLocator {
 	final static int DEFAULTDEPTH = 3;
 	
 	private static final Predicate<Object> KeywordValidator = s -> s instanceof String;
-	private List<Path> mods;
+	public List<Path> mods;
 	private List<String> ignoreWords = null;
 	private int depth = 0;
 	private FileConfig config = FileConfig.of(CONFIGFILE);
@@ -126,19 +125,20 @@ public class StructuredModLoader implements IModLocator {
 	
 	// Implements
 	
+	@Override
 	public Stream<Path> scanCandidates() {
 		LOGGER.debug("SML.scanCandidates()");
-		return new ArrayList<Path>().stream();
-	}
-	
-	@Override
-	public List<IModFile> scanMods() {
 		LOGGER.info("Structured Mod Loader installed!");
 		configProvider();
 		recurseJarLoader(new File(FMLPaths.MODSDIR.toString()), depth);
 		
-		LOGGER.info("Successfully recursively loaded\n{}", String.join(",\n", mods.toArray().toString()));
-		return new ArrayList<IModFile>();
+		LOGGER.info("Successfully recursively loaded:");
+		String modlist = "";
+		for (int i = 0; i < mods.size(); i++) {
+			modlist += mods.get(i).toAbsolutePath().getName(mods.get(i).toAbsolutePath().getNameCount() - 1) + "\n";
+		}
+		LOGGER.info(modlist);
+		return mods.stream();
 	}
 	
 	@Override
@@ -147,22 +147,9 @@ public class StructuredModLoader implements IModLocator {
 	}
 	
 	@Override
-	public void scanFile(IModFile modFile, Consumer<Path> pathConsumer) {
-		// TODO Auto-generated method stub
-		LOGGER.debug("SML.scanFile({}, {})", modFile, pathConsumer);
-	}
-	
-	@Override
 	public void initArguments(Map<String, ?> arguments) {
 		// TODO Auto-generated method stub
 		LOGGER.debug("SML.initArguments({})", arguments);
-	}
-	
-	@Override
-	public boolean isValid(IModFile modFile) {
-		// TODO Auto-generated method stub
-		LOGGER.debug("SML.isValid({})", modFile);
-		return true;
 	}
 	
 }
