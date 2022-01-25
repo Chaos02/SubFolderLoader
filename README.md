@@ -1,6 +1,8 @@
 
 # StructuredModLoader
-[![GitHub issues](https://img.shields.io/badge/Git-Hub-blue)](https://github.com/Chaos02/SubFolderLoader)[![GitHub issues](https://img.shields.io/github/issues/Chaos02/SubFolderLoader?logo=GitHub)](https://github.com/Chaos02/SubFolderLoader/issues)[![GitHub stars](https://img.shields.io/github/stars/Chaos02/SubFolderLoader?logo=GitHub)](https://github.com/Chaos02/SubFolderLoader/stargazers)
+[![CurseForge](https://cf.way2muchnoise.eu/structured-mod-loader-forge.svg)](https://www.curseforge.com/minecraft/mc-mods/structured-mod-loader-forge)[![GitHub](https://img.shields.io/badge/Git-Hub-blue)](https://github.com/Chaos02/SubFolderLoader)[![GitHub issues](https://img.shields.io/github/issues/Chaos02/SubFolderLoader?logo=GitHub)](https://github.com/Chaos02/SubFolderLoader/issues)[![GitHub stars](https://img.shields.io/github/stars/Chaos02/SubFolderLoader?logo=GitHub)](https://github.com/Chaos02/SubFolderLoader/stargazers)
+
+[![CurseVersions](https://cf.way2muchnoise.eu/versions/structured-mod-loader-forge.svg)](https://www.curseforge.com/minecraft/mc-mods/structured-mod-loader-forge/files/all)
 
 StructuredModLoader, short SML, is a [Minecraft](minecraft.net) [Forge](https://files.minecraftforge.net/net/minecraftforge/forge/) mod for those that wish to achieve a tidier `\mods` folder!
 Once placed inside the main mods directory, it will recursively search for `.jar` files in all subfolders and present them to the regular Forge modloader FML.
