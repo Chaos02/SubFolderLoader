@@ -1,4 +1,3 @@
-
 # StructuredModLoader
 [![CurseForge](https://cf.way2muchnoise.eu/573056.svg)](https://www.curseforge.com/minecraft/mc-mods/structured-mod-loader-forge)[![GitHub](https://img.shields.io/badge/Git-Hub-blue)](https://github.com/Chaos02/SubFolderLoader)[![GitHub issues](https://img.shields.io/github/issues/Chaos02/SubFolderLoader?logo=GitHub)](https://github.com/Chaos02/SubFolderLoader/issues)[![GitHub stars](https://img.shields.io/github/stars/Chaos02/SubFolderLoader?logo=GitHub)](https://github.com/Chaos02/SubFolderLoader/stargazers)
 
