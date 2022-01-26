@@ -16,16 +16,12 @@ import com.electronwill.nightconfig.core.ConfigSpec;
 import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-//import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.LogMarkers;
 import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
-@Mod("structuredmodloader")
+//@Mod("structuredmodloader")
 public class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -34,13 +30,17 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	final static File CONFIGFILE = new File(FMLPaths.CONFIGDIR.get() + "\\StructuredModLoader.toml");
 	final static List<String> DEFAULTDIRS = Arrays.asList("ignore", "unstable", "disable");
 	final static int DEFAULTDEPTH = 3;
+	final static boolean DEFAULTVERSIONDIRONLY = false;
 	
 	final static File GAMEDIR = FMLPaths.GAMEDIR.get().toFile();
 	final static File MODSDIR = FMLPaths.MODSDIR.get().toFile();
-	public List<Path> mods;
-	private List<String> ignoreWords = null;
-	private int depth = 0;
-	private CommentedFileConfig config = CommentedFileConfig.of(CONFIGFILE);
+	public static List<Path> mods = null;
+	public static List<String> ignoreWords = null;
+	public static boolean loadOnlyVersDir = false;
+	public static int depth = 0;
+	static File modRoot = MODSDIR;
+	static String MCVers = "ERROR";
+	private static CommentedFileConfig config = CommentedFileConfig.of(CONFIGFILE);
 	ConfigSpec smlSpec = new ConfigSpec();
 	
 	public StructuredModLoader() {
@@ -59,6 +59,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		// MinecraftForge.EVENT_BUS.register(this);
 	}
 	
+	/*
 	@SubscribeEvent
 	public void setup(final FMLCommonSetupEvent event) {
 		// some preinit code
@@ -66,6 +67,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		LOGGER.info(LogMarkers.SPLASH,
 				"A HUGE THANK YOU! to stiebi99#2124 again because literally without him this mod would never exist!");
 	}
+	*/
 	
 	public class KeywordValidator {
 		public boolean test(String toValidate) {
@@ -83,20 +85,26 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		
 		smlSpec.defineInRange("recurseDepth", 3, 0, 5);
 		smlSpec.defineList("ignoredKeywords", DEFAULTDIRS, KeywordValidator);
+		smlSpec.define("loadOnlyVersionFolders", DEFAULTVERSIONDIRONLY);
 		
 		config.load();
 		if (!smlSpec.isCorrect(config)) {
 			CorrectionListener corrector = (action, path, incorrectValue, correctedValue) -> {
 				String pathString = String.join(",", path);
 				LOGGER.error("Corrected {}: was {}, is now {}", pathString, incorrectValue, correctedValue);
-				
-				config.setComment("recurseDepth", "How deep the folder structure inside the mods folder may be (max 5)");
-				config.setComment("ignoredKeywords", "A folder containing one or more of these keywords will be skipped");
 				config.save();
 			};
 			LOGGER.error("Config file is incorrect or missing, correcting!");
 			int corrections = smlSpec.correct(config, corrector);
 			LOGGER.info("Corrected {} errors.", corrections);
+		}
+		config.setComment("recurseDepth", "How deep the folder structure inside the mods folder may be (max 5)");
+		config.setComment("ignoredKeywords", "A folder containing one or more of these keywords will be skipped");
+		config.setComment("loadOnlyVersionFolders", "Wether to set the MC version as the first directory to scan");
+		
+		loadOnlyVersDir = config.get("loadOnlyVersionFolders");
+		if (loadOnlyVersDir) {
+			LOGGER.info("Attempting to load only MC version directory!");
 		}
 		
 		depth = config.get("recurseDepth");
@@ -161,7 +169,15 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		LOGGER.debug("SML.scanCandidates()");
 		LOGGER.info("Structured Mod Loader installed!");
 		configProvider();
-		recurseJarLoader(MODSDIR, depth);
+		if (loadOnlyVersDir) {
+			modRoot = new File(FMLPaths.MODSDIR.get() + MCVers);
+		}
+		if (modRoot.exists()) {
+			LOGGER.info("Setting {} as modroot!", relPath(modRoot, GAMEDIR));
+		} else {
+			LOGGER.error("{} mods folder doesn't exist! Ignoring config value!", MCVers);
+		}
+		recurseJarLoader(modRoot, depth);
 		/*
 		LOGGER.info("Successfully recursively loaded:");
 		String modlist = "";
@@ -180,8 +196,8 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	
 	@Override
 	public void initArguments(Map<String, ?> arguments) {
-		// TODO Auto-generated method stub
-		LOGGER.debug("SML.initArguments({})", arguments);
+		// LOGGER.debug("SML.initArguments({})", arguments);
+		MCVers = arguments.get("mcVersion").toString();
 	}
 	
 }
