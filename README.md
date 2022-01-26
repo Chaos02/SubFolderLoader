@@ -5,7 +5,7 @@
 
 StructuredModLoader, short SML, is a [Minecraft](minecraft.net) [Forge](https://files.minecraftforge.net/net/minecraftforge/forge/) mod for those that wish to achieve a tidier `\mods` folder!
 Once placed inside the main mods directory, it will recursively search for `.jar` files in all subfolders and present them to the regular Forge modloader FML.
-This Mod is mainly aimed at modpack creators, to keep track of library mods and actually content-adding ones [See example directory tree][1]
+This Mod is mainly aimed at modpack creators, to keep track of library mods and actually content-adding ones [See example directory tree](#Modpack-setup)
 It mod will log everything it does or *does not* to the regular gamelog.
 ## Getting started:
 It's as easy, as installing literally any other mod:
@@ -14,10 +14,11 @@ By default directories containing one of the keywords
 ***ignore***,***unstable*** and ***disable***
 will be excluded from loading, aswell as any folder that is deeper than ***3*** folders in the directory tree.
 ### Configuration:
-Upon first launch, the Mod will create a config file located at `\config\StructuredModLoader.toml`, where you can configure the infinite list of keywords to be excluded aswell as the maximum recursion depth, ***capped at 5***
+Upon first launch, the Mod will create a config file located at `\config\StructuredModLoader.toml`, where you can configure the infinite list of keywords to be excluded aswell as the maximum recursion depth, ***capped at 5***.
+Inside the config you may also configure, wether you want to start the recursion inside `\mods\<MCversion>` directory, to be able to have multiple modded installs in the same minecraft directory!
 If the file should get deleted or its Syntax ([TOML](https://github.com/toml-lang/toml)) is invalid, the invalid values will be reset to their default and the file will be created again.
-#### Examples:
-[1]: Modpack setup:
+### Examples:
+#### Modpack setup:
 ```
 Directory depth will be counted from the \mods folder,
 Content is depth 1, tech depth 2 and AE2 depth 3.
