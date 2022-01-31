@@ -5,8 +5,8 @@
 
 StructuredModLoader, short SML, is a [Minecraft](minecraft.net) [Forge](https://files.minecraftforge.net/net/minecraftforge/forge/) mod for those that wish to achieve a tidier `\mods` folder!
 Once placed inside the main mods directory, it will recursively search for `.jar` files in all subfolders and present them to the regular Forge modloader FML.
-This Mod is mainly aimed at modpack creators, to keep track of library mods and actually content-adding ones [See example directory tree](#Modpack-setup)
-It mod will log everything it does or *does not* to the regular gamelog.
+This Mod is mainly aimed at modpack creators, to keep track of library mods and actually content-adding ones. ([See example directory tree](#Modpack-setup))  
+It will log everything it does or *does not* to the regular gamelog.
 ## Getting started:
 It's as easy, as installing literally any other mod:
 Drop the downloaded .jar file from the [Releases](https://github.com/Chaos02/SubFolderLoader/tags) page into the `mods` folder of your Minecraft Forge installation!
