@@ -1,50 +1,51 @@
 package com.chaos02.structuredmodloader;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.electronwill.nightconfig.core.ConfigSpec;
-import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-
+import cpw.mods.modlauncher.api.NamedPath;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.LogMarkers;
 import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
-//@Mod("structuredmodloader")
 public class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
+	// Get Config class
+	private static final Config Config = new Config();
 	// Directly reference a log4j logger.
-	private static final Logger LOGGER = LogManager.getLogger();
+	static final Logger LOGGER = LogManager.getLogger();
+	// Set Filesystem seperator char.
+	static final char FSC = File.separatorChar;
 	
-	// Mod paths
-	final static File CONFIGFILE = new File(FMLPaths.CONFIGDIR.get() + "\\StructuredModLoader.toml");
+	// Paths
+	final static File CONFIGFILE = new File(FMLPaths.CONFIGDIR.get() + String.valueOf(FSC) + "StructuredModLoader.toml");
 	final static List<String> DEFAULTDIRS = Arrays.asList("ignore", "unstable", "disable");
 	final static int DEFAULTDEPTH = 3;
+	final static int MAXDEPTH = 5;
 	final static boolean DEFAULTVERSIONDIRONLY = false;
-	
 	final static File GAMEDIR = FMLPaths.GAMEDIR.get().toFile();
 	final static File MODSDIR = FMLPaths.MODSDIR.get().toFile();
-	public static List<Path> mods = null;
-	public static List<String> ignoreWords = null;
-	public static boolean loadOnlyVersDir = false;
-	public static int depth = 0;
+	
+	// Variables
+	public static List<NamedPath> transformers = new ArrayList<>();
+	public static List<Path> mods = new ArrayList<>();
 	static File modRoot = MODSDIR;
 	static String MCVers = "ERROR";
-	private static CommentedFileConfig config = CommentedFileConfig.of(CONFIGFILE);
-	ConfigSpec smlSpec = new ConfigSpec();
 	
 	public StructuredModLoader() {
-		mods = new ArrayList<>();
 		
 		/* This doesnt work because of java.lang.NoClassDefFoundError: net/minecraftforge/fml/javafmlmod/FMLJavaModLoadingContext */
 		// Register the setup method for modloading
@@ -69,62 +70,19 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	}
 	*/
 	
-	public class KeywordValidator {
-		public boolean test(String toValidate) {
-			return true;
-			
-		}
-	}
-	
-	private static final Predicate<Object> KeywordValidator = s -> {
-		return (s instanceof String);
-	};
-	
-	public void configProvider() {
-		LOGGER.info("Loading Config now! ({})", CONFIGFILE.toString());
-		
-		smlSpec.defineInRange("recurseDepth", 3, 0, 5);
-		smlSpec.defineList("ignoredKeywords", DEFAULTDIRS, KeywordValidator);
-		smlSpec.define("loadOnlyVersionFolders", DEFAULTVERSIONDIRONLY);
-		
-		config.load();
-		if (!smlSpec.isCorrect(config)) {
-			CorrectionListener corrector = (action, path, incorrectValue, correctedValue) -> {
-				String pathString = String.join(",", path);
-				LOGGER.error("Corrected {}: was {}, is now {}", pathString, incorrectValue, correctedValue);
-				config.save();
-			};
-			LOGGER.error("Config file is incorrect or missing, correcting!");
-			int corrections = smlSpec.correct(config, corrector);
-			LOGGER.info("Corrected {} errors.", corrections);
-		}
-		config.setComment("recurseDepth", "How deep the folder structure inside the mods folder may be (max 5)");
-		config.setComment("ignoredKeywords", "A folder containing one or more of these keywords will be skipped");
-		config.setComment("loadOnlyVersionFolders", "Wether to set the MC version as the first directory to scan");
-		
-		loadOnlyVersDir = config.get("loadOnlyVersionFolders");
-		if (loadOnlyVersDir) {
-			LOGGER.info("Attempting to load only MC version directory!");
-		}
-		
-		depth = config.get("recurseDepth");
-		LOGGER.info("Loading subfolders that are NOT in config to a depth of {}!", depth);
-		ignoreWords = config.get("ignoredKeywords");
-		if (ignoreWords == null) {
-			// TODO why ignoreWords == null??? fixed?
-			LOGGER.error("ignoreWords empty blyat ({})", ignoreWords.toString());
-			ignoreWords = DEFAULTDIRS;
-		}
-		ignoreWords.removeAll(Arrays.asList("", null)); // removes empty fields
-		LOGGER.info("Ignoring keywords: \"{}\"", String.join(", ", ignoreWords));
-		
-	}
-	
-	private String relPath(File file, File root) {
+	public String relPath(File file, File root) {
 		return file.toString().substring(root.toString().length());
 	}
 	
-	private void recurseJarLoader(File dir, int depth) {
+	/**
+	 * 
+	 * @param dir   Directory to recurse through
+	 * @param depth Limits recursion.
+	 * @param list  Which list to add the file to.
+	 * @throws IOException When File mysteriously disappeared
+	 */
+	public void recurseLoader(File dir, int depth, List<Path> list) throws IOException {
+		// TODO use this method load load both, transformer and mods.
 		
 		if (dir != MODSDIR) {
 			LOGGER.info(LogMarkers.SCAN, "Getting Files in \"{}\"", relPath(dir, MODSDIR));
@@ -132,7 +90,25 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 			for (int i2 = 0; i2 < subFiles.length; i2++) {
 				if (subFiles[i2].toString().toLowerCase().endsWith(".jar")) {
 					LOGGER.info("Found \"{}\"", relPath(subFiles[i2], MODSDIR));
-					mods.add(subFiles[i2].toPath());
+					/* if (LamdbaExceptionUtils.uncheck(() -> Files.size(subFiles[i2].toPath())) == 0) { */
+					if (Files.size(subFiles[i2].toPath()) == 0) {
+						LOGGER.info("\"{}\": size == 0", relPath(subFiles[i2], MODSDIR));
+					} else {
+						// Add to Transformer list
+						try (ZipFile zf = new ZipFile(new File(subFiles[i2].toURI()))) {
+							if (zf.getEntry("META-INF/services/cpw.mods.modlauncher.api.ITransformationService") != null) {
+								LOGGER.info(LogMarkers.SCAN, "Adding \"{}\" as a Transformer", subFiles[i2]);
+								transformers.add(new NamedPath(zf.getName(), subFiles[i2].toPath()));
+							} else if (zf.getEntry("META-INF/services/net.minecraftforge.forgespi.locating.IModLocator") != null) {
+								transformers.add(new NamedPath(zf.getName(), subFiles[i2].toPath()));
+							}
+						} catch (IOException ioe) {
+							LogManager.getLogger().error("Zip Error when loading jar file {}", subFiles[i2], ioe);
+						}
+						
+						// Add to Forge mod list
+						list.add(subFiles[i2].toPath());
+					}
 				} else {
 					LOGGER.error("Skipped \"{}\" because of file extension", subFiles[i2].getName());
 				}
@@ -145,31 +121,46 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		if (subDirs.length > 0) {
 			if (depth >= 0) {
 				for (int j = 0; j < subDirs.length; j++) {
-					if (!ignoreWords.stream().anyMatch(subDirs[j].toString()::contains)) {
+					if (!Config.ignoreWords.stream().anyMatch(subDirs[j].toString()::contains)) {
 						LOGGER.info("Searching for mods in \"{}\"", relPath(subDirs[j], MODSDIR));
-						recurseJarLoader(subDirs[j], depth - 1);
+						recurseLoader(subDirs[j], depth - 1, mods);
 					} else {
 						LOGGER.info("Skipping \"{}\" because of config", relPath(subDirs[j], MODSDIR));
 					}
 				}
 			} else {
-				LOGGER.error("Skipping subdirectories of \"{}\". Please rearrange or configure higher depth!",
-						relPath(dir, MODSDIR));
+				LOGGER.error("Skipping subdirectories of \"{}\". Please rearrange or configure higher depth!", relPath(dir, MODSDIR));
 			}
 		} else {
-			LOGGER.debug("\"{}\" contains no sub directories.", relPath(dir, MODSDIR));
+			LOGGER.info("\"{}\" contains no sub directories.", relPath(dir, MODSDIR));
 		}
 		
 	}
 	
 	// Implements
 	
+	// to disable normal mod scanning:
+	/*
+	 @Override ModFolderLocator.
+	 public Stream<Path> scanCandidates() {
+	     LOGGER.debug(LogMarkers.SCAN,"Scanning mods dir {} for mods", this.modFolder);
+	     var excluded = ModDirTransformerDiscoverer.allExcluded();
+	
+	     return uncheck(()-> Files.list(this.modFolder))
+	             .filter(p-> !excluded.contains(p) && StringUtils.toLowerCase(p.getFileName().toString()).endsWith(SUFFIX))
+	             .sorted(Comparator.comparing(path-> StringUtils.toLowerCase(path.getFileName().toString())));
+	 } 
+	 
+	 */
+	
+	//
+	
 	@Override
 	public Stream<Path> scanCandidates() {
 		LOGGER.debug("SML.scanCandidates()");
 		LOGGER.info("Structured Mod Loader installed!");
-		configProvider();
-		if (loadOnlyVersDir) {
+		Config.configProvider();
+		if (Config.loadOnlyVersDir) {
 			modRoot = new File(FMLPaths.MODSDIR.get() + MCVers);
 		}
 		if (modRoot.exists()) {
@@ -177,7 +168,25 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		} else {
 			LOGGER.error("{} mods folder doesn't exist! Ignoring config value!", MCVers);
 		}
-		recurseJarLoader(modRoot, depth);
+		
+		String SMLstr = null;
+		try {
+			SMLstr = java.net.URLDecoder.decode(StructuredModLoader.class.getProtectionDomain().getCodeSource().getLocation().getPath(),
+					StandardCharsets.UTF_8.name());
+		} catch (UnsupportedEncodingException e) {
+			// not going to happen - value came from JDK's own StandardCharsets
+		}
+		File SMLJAR = new File(SMLstr.substring(0, SMLstr.length() - 5));
+		// mods.add(SMLJAR.toPath());
+		if (mods.contains(SMLJAR.toPath())) {
+			LOGGER.info("Added SML to Forge mod list. ({})", relPath(SMLJAR, GAMEDIR));
+		}
+		try {
+			recurseLoader(modRoot, Config.depth, mods);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		/*
 		LOGGER.info("Successfully recursively loaded:");
 		String modlist = "";
