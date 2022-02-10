@@ -5,7 +5,7 @@ issueTrackerURL="https://github.com/Chaos02/SubFolderLoader/issues"
 showAsResourcePack=false
 
 [[mods]]
-modId="smlforgemod"
+modId="structuredmodloader"
 version="${file.jarVersion}"
 displayName="StructuredModLoader"
 updateJSONURL="https://raw.githubusercontent.com/Chaos02/SubFolderLoader/main/update.json"
@@ -18,13 +18,13 @@ Loads mod files from configurable subfolders
 to provide cleaner modpack structure
 '''
 
-[[dependencies.smlforgemod]]
+[[dependencies.structuredmodloader]]
     modId="forge"
     mandatory=true
     versionRange="[39,40)"
     ordering="NONE"
     side="BOTH"
-[[dependencies.smlforgemod]]
+[[dependencies.structuredmodloader]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.18,1.19)"
