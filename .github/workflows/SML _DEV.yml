@@ -14,7 +14,11 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ${{ matrix }}
+    strategy:
+      matrix:
+        java-version: ['17','18']
+        os: [self-hosted, ubuntu-latest, windows-latest]
 
     steps:
       - run: echo "Triggered by ${{ github.event_name }}; On ${{ runner.name }} (${{ runner.os }})"
