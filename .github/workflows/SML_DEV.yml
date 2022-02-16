@@ -6,12 +6,13 @@
 name: StructuredModLoader DEV
 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Triggers the workflow on push or pull request events but only for the development branch
   push:
     branches: [ development ]
   pull_request:
     branches: [ development ]
   workflow_dispatch:
+    branches: [ development ]
 
 jobs:
   build:

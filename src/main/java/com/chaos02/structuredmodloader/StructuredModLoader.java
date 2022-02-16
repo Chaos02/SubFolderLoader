@@ -175,6 +175,9 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		// LOGGER.debug("SML.scanCandidates()");
 		LOGGER.info("Structured Mod Loader installed!");
 		// Config.configProvider();
+		if (!TransformerCompat.getRan()) {
+			LOGGER.error(LogMarkers.LOADING, "TRANSFORMER LOCATOR DIDNT RUN! Error WILL arise!");
+		}
 		
 		modRoot = TransformerCompat.getModRoot();
 		if (modRoot.exists()) {

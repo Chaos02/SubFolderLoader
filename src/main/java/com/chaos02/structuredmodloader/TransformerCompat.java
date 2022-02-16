@@ -16,10 +16,9 @@ import cpw.mods.modlauncher.api.LamdbaExceptionUtils;
 import cpw.mods.modlauncher.api.NamedPath;
 import cpw.mods.modlauncher.serviceapi.ITransformerDiscoveryService;
 import net.minecraftforge.fml.loading.LogMarkers;
-import net.minecraftforge.fml.loading.ModDirTransformerDiscoverer;
 
-// extends ModDirTransformerDiscoverer
-public class TransformerCompat extends ModDirTransformerDiscoverer implements ITransformerDiscoveryService {
+// extends ModDirTransformerDiscoverer implements ITransformerDiscoveryService
+public class TransformerCompat implements ITransformerDiscoveryService {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = StructuredModLoader.LOGGER;
 	// Set Filesystem seperator char.
@@ -34,6 +33,7 @@ public class TransformerCompat extends ModDirTransformerDiscoverer implements IT
 	public static List<Path> mods = new ArrayList<>();
 	public static File modRoot = MODSDIR;
 	public static String MCVers = "ERROR";
+	public static boolean wasConstructed = false;
 	
 	TransformerCompat() {
 		LOGGER.info("Loaded SML TransformerDiscoveryService");
@@ -67,6 +67,7 @@ public class TransformerCompat extends ModDirTransformerDiscoverer implements IT
 	
 	@Override
 	public List<NamedPath> candidates(final Path gameDirectory) {
+		wasConstructed = true;
 		scan(gameDirectory);
 		return transformers;
 	}
@@ -119,6 +120,10 @@ public class TransformerCompat extends ModDirTransformerDiscoverer implements IT
 		} catch (IOException ioe) {
 			LogManager.getLogger().error("Zip Error when loading jar file {}", path, ioe);
 		}
+	}
+	
+	public static boolean getRan() {
+		return wasConstructed;
 	}
 	
 }
