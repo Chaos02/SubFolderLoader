@@ -23,7 +23,8 @@ jobs:
       matrix:
         java:
         - '17'
-        os: [self-hosted, ubuntu-latest, windows-latest]
+        os: 
+        - 'self-hosted'
 
     steps:
       - run: echo "Triggered by ${{ github.event_name }}; On ${{ runner.name }} (${{ runner.os }})"
