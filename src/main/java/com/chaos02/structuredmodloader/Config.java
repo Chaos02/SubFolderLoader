@@ -12,13 +12,13 @@ import com.electronwill.nightconfig.core.ConfigSpec;
 import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
+import cpw.mods.modlauncher.api.IEnvironment;
+
 public class Config {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = StructuredModLoader.LOGGER;
 	// Set Filesystem seperator char.
-	private static final char FSC = StructuredModLoader.FSC;
-	// Get main class object
-	private static final StructuredModLoader SML = new StructuredModLoader();
+	private static final char FSC = File.separatorChar;
 	
 	/*                   Get Main class constants                       */
 	// Mod paths
@@ -28,27 +28,38 @@ public class Config {
 	private final static int MAXDEPTH = StructuredModLoader.MAXDEPTH;
 	private final static boolean DEFAULTVERSIONDIRONLY = StructuredModLoader.DEFAULTVERSIONDIRONLY;
 	
-	final static File GAMEDIR = StructuredModLoader.GAMEDIR;
-	final static File MODSDIR = StructuredModLoader.MODSDIR;
+	private final static File GAMEDIR = new File(IEnvironment.Keys.GAMEDIR.get().toString());;
 	
 	// Variables
 	final static char[] badChars = { FSC };
 	
 	// Config Value Variables
-	public List<String> ignoreWords = null;
-	public boolean loadOnlyVersDir = false;
-	public int depth = 0;
+	public static List<String> ignoreWords = null;
+	public static boolean loadOnlyVersDir = false;
+	public static int depth = 0;
+	
+	public static List<String> getIgnoreWords() {
+		return ignoreWords;
+	}
+	
+	public static boolean getLoadOnlyVersDir() {
+		return loadOnlyVersDir;
+	}
+	
+	public static int getDepth() {
+		return depth;
+	}
 	
 	// Config init
 	private static CommentedFileConfig config = CommentedFileConfig.of(CONFIGFILE);
-	ConfigSpec smlSpec = new ConfigSpec();
+	static ConfigSpec smlSpec = new ConfigSpec();
 	
 	private static final Predicate<Object> KeywordValidator = s -> {
 		return ((s instanceof String) && (!StringUtils.containsAnyIgnoreCase(s.toString(), badChars.toString())));
 	};
 	
-	public void configProvider() {
-		LOGGER.info("Loading Config now! ({})", SML.relPath(CONFIGFILE, GAMEDIR).toString());
+	public static void configProvider() {
+		LOGGER.info("Loading Config now! ({})", StructuredModLoader.relPath(CONFIGFILE, GAMEDIR).toString());
 		
 		smlSpec.defineInRange("recurseDepth", DEFAULTDEPTH, 0, MAXDEPTH);
 		smlSpec.defineList("ignoredKeywords", DEFAULTDIRS, KeywordValidator);
@@ -79,13 +90,11 @@ public class Config {
 		LOGGER.info("Loading subfolders that are NOT in config to a depth of {}!", depth);
 		ignoreWords = config.get("ignoredKeywords");
 		if (ignoreWords == null) {
-// TODO why ignoreWords == null??? fixed?
+			// TODO why ignoreWords == null??? fixed?
 			LOGGER.error("ignoreWords empty blyat ({})", ignoreWords.toString());
 			ignoreWords = DEFAULTDIRS;
 		}
-		ignoreWords.removeAll(Arrays.asList("", null)); // removes
-																		// empty
-																		// fields
+		ignoreWords.removeAll(Arrays.asList("", null)); // removes empty fields
 		LOGGER.info("Ignoring keywords: \"{}\"", String.join(", ", ignoreWords));
 		
 	}

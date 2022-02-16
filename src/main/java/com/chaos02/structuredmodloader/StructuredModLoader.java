@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Stream;
-import java.util.zip.ZipFile;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,8 +22,6 @@ import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
 public class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
-	// Get Config class
-	private static final Config Config = new Config();
 	// Directly reference a log4j logger.
 	static final Logger LOGGER = LogManager.getLogger();
 	// Set Filesystem seperator char.
@@ -71,21 +67,18 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	}
 	*/
 	
-	public String relPath(File file, File root) {
+	public static String relPath(File file, File root) {
 		return file.toString().substring(root.toString().length());
 	}
-	
 	
 	/**
 	 * 
 	 * @param dir   Directory to recurse through
 	 * @param depth Limits recursion.
-	 * @param list  Which list to add the file to.
+	 * @param mode  transformer or forgemod
 	 * @throws IOException When File mysteriously disappeared
 	 */
-	public void recurseLoader(File dir, int depth, Function<String, ?> func) throws IOException {
-		// TODO use this method load load both, transformer and mods.
-		
+	public static void recurseLoader(File dir, List<String> ignoreWords, int depth, String mode) throws IOException {
 		if (dir != MODSDIR) {
 			LOGGER.info(LogMarkers.SCAN, "Getting Files in \"{}\"", relPath(dir, MODSDIR));
 			File[] subFiles = dir.listFiles(File::isFile);
@@ -97,22 +90,39 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 						LOGGER.info("\"{}\": size == 0", relPath(subFiles[i2], MODSDIR));
 					} else {
 						
-						subFiles[i2] -> { func };
-						
-						// Add to Transformer list
-						try (ZipFile zf = new ZipFile(new File(subFiles[i2].toURI()))) {
-							if (zf.getEntry("META-INF/services/cpw.mods.modlauncher.api.ITransformationService") != null) {
-								LOGGER.info(LogMarkers.SCAN, "Adding \"{}\" as a Transformer", subFiles[i2]);
-								transformers.add(new NamedPath(zf.getName(), subFiles[i2].toPath()));
-							} else if (zf.getEntry("META-INF/services/net.minecraftforge.forgespi.locating.IModLocator") != null) {
-								transformers.add(new NamedPath(zf.getName(), subFiles[i2].toPath()));
-							}
-						} catch (IOException ioe) {
-							LogManager.getLogger().error("Zip Error when loading jar file {}", subFiles[i2], ioe);
+						switch (mode.toLowerCase()) {
+							case "transformer":
+								// Add to Transformer list
+								
+								TransformerCompat.visitFile(subFiles[i2].toPath());
+								
+								// TODO Translate from lambda to normal?
+								/* if (LamdbaExceptionUtils.uncheck(Files.size(subFiles[i2].toPath()) == 0) return; */
+								/*
+								try (ZipFile zf = new ZipFile(new File(subFiles[i2].toURI()))) {
+									if (zf.getEntry("META-INF/services/cpw.mods.modlauncher.api.ITransformationService") != null) {
+										LOGGER.info(LogMarkers.SCAN, "Adding \"{}\" as a Transformer.", subFiles[i2]);
+										transformers.add(new NamedPath(zf.getName(), subFiles[i2].toPath()));
+									} else if (zf.getEntry("META-INF/services/net.minecraftforge.forgespi.locating.IModLocator") != null) {
+										LOGGER.info(LogMarkers.SCAN, "Adding \"{}\" as a ModLocator.", subFiles[i2]);
+										transformers.add(new NamedPath(zf.getName(), subFiles[i2].toPath()));
+									}
+								} catch (IOException ioe) {
+									LOGGER.error("Zip Error when loading jar file {}\n{}", subFiles[i2], ioe);
+								}
+								*/
+								
+								break;
+							case "forgemod":
+								
+								// Add to Forge mod list
+								mods.add(subFiles[i2].toPath());
+								
+								break;
+							default:
+								LOGGER.error("WRONG MODE ARGUMENT AT \"recurseLoader({},{},{})\"!", dir, depth, mode);
+								break;
 						}
-						
-						// Add to Forge mod list
-						mods.add(subFiles[i2].toPath());
 					}
 				} else {
 					LOGGER.error("Skipped \"{}\" because of file extension", subFiles[i2].getName());
@@ -126,9 +136,9 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		if (subDirs.length > 0) {
 			if (depth >= 0) {
 				for (int j = 0; j < subDirs.length; j++) {
-					if (!Config.ignoreWords.stream().anyMatch(subDirs[j].toString()::contains)) {
+					if (!Config.getIgnoreWords().stream().anyMatch(subDirs[j].toString()::contains)) {
 						LOGGER.info("Searching for mods in \"{}\"", relPath(subDirs[j], MODSDIR));
-						recurseLoader(subDirs[j], depth - 1, func);
+						recurseLoader(subDirs[j], ignoreWords, depth - 1, mode);
 					} else {
 						LOGGER.info("Skipping \"{}\" because of config", relPath(subDirs[j], MODSDIR));
 					}
@@ -162,12 +172,11 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	
 	@Override
 	public Stream<Path> scanCandidates() {
-		LOGGER.debug("SML.scanCandidates()");
+		// LOGGER.debug("SML.scanCandidates()");
 		LOGGER.info("Structured Mod Loader installed!");
-		Config.configProvider();
-		if (Config.loadOnlyVersDir) {
-			modRoot = new File(FMLPaths.MODSDIR.get() + MCVers);
-		}
+		// Config.configProvider();
+		
+		modRoot = TransformerCompat.getModRoot();
 		if (modRoot.exists()) {
 			LOGGER.info("Setting {} as modroot!", relPath(modRoot, GAMEDIR));
 		} else {
@@ -187,7 +196,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 			LOGGER.info("Added SML to Forge mod list. ({})", relPath(SMLJAR, GAMEDIR));
 		}
 		try {
-			recurseLoader(modRoot, Config.depth, asMods);
+			recurseLoader(modRoot, Config.getIgnoreWords(), Config.getDepth(), "forgemod");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -200,6 +209,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		}
 		LOGGER.info(modlist);
 		*/
+		TransformerCompat.setMods(mods);
 		return mods.stream();
 	}
 	
@@ -211,7 +221,8 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	@Override
 	public void initArguments(Map<String, ?> arguments) {
 		// LOGGER.debug("SML.initArguments({})", arguments);
-		MCVers = arguments.get("mcVersion").toString();
+		// MCVers = arguments.get("mcVersion").toString();
+		MCVers = TransformerCompat.getMCVers();
 	}
 	
 }

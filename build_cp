@@ -6,7 +6,7 @@ SRC_DIR="./build/libs"
 DEST_DIR="./testing environment/mods"
 file=$(ls -dtr1 "$SRC_DIR"/* | tail -1)
 
-if [[ "$(find "$file" -mmin +1)" == '' ]]; then
+if [[ "$(find "$file" -mmin +1)" != '' ]]; then
 	./gradlew build
 fi
 cp -puv "$file" "$DEST_DIR"
