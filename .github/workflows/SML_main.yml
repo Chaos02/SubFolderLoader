@@ -20,7 +20,8 @@ jobs:
     strategy:
       matrix:
         java: ['17','18']
-        os: [self-hosted, ubuntu-latest, windows-latest]
+        os: 
+        - 'self-hosted'
 
     steps:
       - run: echo "Triggered by ${{ github.event_name }}; On ${{ runner.name }} (${{ runner.os }})"
