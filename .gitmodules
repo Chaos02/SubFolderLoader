@@ -1,6 +1,6 @@
-[submodule "Scripts/CurseForgeRelease"]
+[submodule ".github/workflows/Scripts/CurseForgeRelease"]
 	path = .github/workflows/Scripts/CurseForgeRelease
 	url = https://github.com/Chaos02/CurseForgeRelease
-[submodule "Scripts/GitHubRelease"]
+[submodule ".github/workflows/Scripts/GitHubRelease"]
 	path = .github/workflows/Scripts/GitHubRelease
 	url = https://github.com/Chaos02/GitHubRelease
