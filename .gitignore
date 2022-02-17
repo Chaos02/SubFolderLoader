@@ -16,6 +16,7 @@ out
 # gradle
 gradle
 build
+!build/libs
 .gradle
 
 # other
