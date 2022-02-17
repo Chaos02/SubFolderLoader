@@ -44,9 +44,11 @@ jobs:
           # Paths within Gradle User Home to cache.
           gradle-home-cache-includes: 'build/*'
           # Paths within Gradle User Home to exclude from cache.
+      - name: Get latest file
+        run: powershell -command 'echo ::set-env name=File::(Get-ChildItem -Path build/libs | Sort-Object LastAccessTime -Descending | Select-Object -First 1)'
       - name: Publish to GitHub
-        run: pushRelease
+        run: .github/workflows/Scripts/GitHubRelease/GitHubRelease -File $File -Token .github/workflows/Scripts/GitHub_token.key -OwnRep github.repository
         shell: powershell
       - name: Publish to CurseForge
-        run: pushToCurseForge
+        run: .github/workflows/Scripts/CurseForgeRelease/CurseForgeRelease -File $File -APIKey .github/workflows/Scripts/CurseForge_token.key -ProjectID 
         shell: powershell
