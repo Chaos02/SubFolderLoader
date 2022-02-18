@@ -4,7 +4,6 @@
 # documentation.
 
 name: StructuredModLoader main
-
 on:
   push:
     branches: [ main ]
@@ -12,6 +11,14 @@ on:
     - 'build.gradle'
     - '!.github/*'
   workflow_dispatch:
+    inputs:
+      ProjectID:
+        type: string
+        description: CurseForge Project ID
+        required: true
+      ChangeLog:
+        type: string
+        description: Provide Prefix of changelog
 
 jobs:
   build:
@@ -47,8 +54,8 @@ jobs:
       - name: Get latest file
         run: powershell -command 'echo ::set-env name=File::(Get-ChildItem -Path build/libs | Sort-Object LastAccessTime -Descending | Select-Object -First 1)'
       - name: Publish to GitHub
-        run: .github/workflows/Scripts/GitHubRelease/GitHubRelease -File $File -Token .github/workflows/Scripts/GitHub_token.key -OwnRep github.repository
+        run: .github/workflows/Scripts/GitHubRelease/GitHubRelease -File $File -Token .github/workflows/Scripts/GitHub_token.key -OwnRep github.repository -ChangeLog $changelog
         shell: powershell
       - name: Publish to CurseForge
-        run: .github/workflows/Scripts/CurseForgeRelease/CurseForgeRelease -File $File -APIKey .github/workflows/Scripts/CurseForge_token.key -ProjectID 
+        run: .github/workflows/Scripts/CurseForgeRelease/CurseForgeRelease -File $File -APIKey .github/workflows/Scripts/CurseForge_token.key -ProjectID $projectid -ChangeLog $changelog
         shell: powershell
