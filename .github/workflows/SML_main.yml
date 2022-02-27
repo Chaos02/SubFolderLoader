@@ -27,6 +27,47 @@ jobs:
       - run: echo "Triggered by ${{ github.event_name }}; On ${{ runner.name }} (${{ runner.os }})"
       - run: echo "Branch ${{ github.ref }}; Repository ${{ github.repostitory }}"
       - uses: actions/checkout@v2
+      
+      # Either use MSYS2 or WSL to use git-crypt
+      - name: Setup MSYS2
+        # https://github.com/marketplace/actions/setup-msys2
+        # uses: msys2/setup-msys2@fa138fa56e2558760b9f2205135313c7345c5f3f
+        uses: msys2/setup-msys2@v2
+        with:
+          # Variant of the environment to set by default: MSYS, MINGW32, MINGW64, UCRT64, CLANG32 or CLANG64
+          #msystem: # optional, default is MINGW64
+          # Default value for MSYS2_PATH_TYPE environment variable: strict, inherit or minimal
+          path-type: inherit # optional, default is minimal
+          # Update MSYS2 installation through pacman
+          update: true # optional
+          # After installation and/or update, install additional packages through pacman
+          install: # optional
+            -git
+            -Syuu
+          # After installation and/or update, install additional packages through pacboy
+          #pacboy: # optional
+          # Retrieve and extract base installation from upstream GitHub Releases
+          #release: # optional, default is true
+          # Where to install MSYS2
+          #location: # optional, default is RUNNER_TEMP
+          # What to do when run on an incompatible runner: fatal, warn
+          #platform-check-severity: # optional, default is fatal
+      
+      - uses: msys2/setup-msys2@v2
+      - name: Set up git-crypt
+        # https://stackoverflow.com/a/48529709/12159866
+        shell: msys2 {0} # ignore githubs suggest
+        run: |
+          pacman -S --needed base-devel mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain \
+                    git subversion mercurial \
+                    mingw-w64-i686-cmake mingw-w64-x86_64-cmake
+          git clone git@github.com:AGWA/git-crypt
+          cd git-crypt
+          make LDFLAGS="-static-libstdc++ -static -lcrypto -lws2_32"
+        
+      - name: Unlock key files using gitcrypt
+        shell: msys2 {0}
+        run: git-crypt unlock ${{ env.OneDrive }}/GitHub/git-crypt_GPG.key
       - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v2
         with:
