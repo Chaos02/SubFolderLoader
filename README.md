@@ -99,3 +99,10 @@ Notice the StructuredModLoader.jar is still inside the regular `\mods` folder, j
 
 ## Known incompatibilities:
  - [Optifine](optifine.net) (`FIX: place in regular \mods folder`)
+
+## Contributing and Updates
+If you want to contribute to the project, feel free to open requests, tho be aware of the changes I make my own.
+Should I, for some reason, not reply to any requests within three months, you may fork this repository to continue the work that I have already done.
+If you do so, you must release the fork under the same license that I have chosen for this repository (GPL-3.0 at the time of writing).
+This project is free to modify for private use but may then not be distributed publicly.
+I plan on releasing updates of this mod for future Minecraft versions and also backport it as far as possible when I have reached (the feature complete) v1.1.
