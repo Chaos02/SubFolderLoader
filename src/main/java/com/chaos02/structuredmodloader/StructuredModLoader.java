@@ -44,6 +44,10 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	
 	public StructuredModLoader() {
 		
+		if (!TransformerCompat.getRan()) {
+			new RuntimeException("SML Init didn't run during transformer setup!");
+		}
+		
 		/* This doesnt work because of java.lang.NoClassDefFoundError: net/minecraftforge/fml/javafmlmod/FMLJavaModLoadingContext */
 		// Register the setup method for modloading
 		// FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
