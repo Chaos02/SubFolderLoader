@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.zip.ZipFile;
@@ -20,63 +21,29 @@ import cpw.mods.modlauncher.api.ITransformationService;
 import cpw.mods.modlauncher.api.ITransformer;
 import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
 import cpw.mods.modlauncher.api.LamdbaExceptionUtils;
+import cpw.mods.modlauncher.api.TypesafeMap;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionSpecBuilder;
-import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.LogMarkers;
 
+@SuppressWarnings("rawtypes")
 // extends ModDirTransformerDiscoverer implements ITransformerDiscoveryService
 public class TransformerCompat implements ITransformationService {
 	// Directly reference a log4j logger.
-	private static final Logger LOGGER = StructuredModLoader.LOGGER;
+	public static final Logger LOGGER = LogManager.getLogger();
 	// Set Filesystem seperator char.
 	private static final char FSC = File.separatorChar;
 	
-	// Constants
-	private final static File GAMEDIR = new File(IEnvironment.Keys.GAMEDIR.get().toString());
-	private static File MODSDIR = new File(GAMEDIR.toString() + String.valueOf(FSC) + FMLPaths.MODSDIR.toString());
+	public static File									modRoot			= SH.getModsDir();
+	private ArgumentAcceptingOptionSpec<String>	mcOption;
+	private ArgumentAcceptingOptionSpec<String>	mcpOption;
+	public static boolean								wasConstructed	= false;
 	
-	// Variables
-	@SuppressWarnings("rawtypes")
-	public static ArrayList<ITransformer> transformers = new ArrayList<>();
-	public static List<Path> mods = new ArrayList<>();
-	public static File modRoot = MODSDIR;
-	public static String MCVers = "ERROR";
-	public static String MCPVers = "ERROR";
-	private ArgumentAcceptingOptionSpec<String> mcOption;
-	private ArgumentAcceptingOptionSpec<String> mcpOption;
-	public static boolean wasConstructed = false;
-	
-	TransformerCompat() {
-		LOGGER.info("Loaded SML TransformerDiscoveryService");
-		MCVers = IEnvironment.Keys.VERSION.get().toString(); /* Should get overriden anyways */
-		LOGGER.info(LogMarkers.CORE, "[SML] Registered Minecraft version {}", MCVers);
+	public TransformerCompat() {
+		LOGGER.info("[SML] {} loaded.", this.getClass().getSimpleName());
+		SH.setMCVers(IEnvironment.Keys.VERSION.get().toString()); /* Should get overridden anyways */
+		LOGGER.info(LogMarkers.CORE, "[SML] Registered Minecraft version {}", SH.getMCVers());
 		wasConstructed = true;
-	}
-	
-	@SuppressWarnings("rawtypes")
-	public static List<ITransformer> getTransformers() {
-		return transformers;
-	}
-	
-	public static List<Path> getMods() {
-		return mods;
-	}
-	
-	public static void setMods(List<Path> mods) {
-		TransformerCompat.mods = mods;
-	}
-	
-	public static File getModRoot() {
-		return modRoot;
-	}
-	
-	public static String getMCVers() {
-		return MCVers;
-	}
-	
-	public void setMCVers(String MCVers) {
-		TransformerCompat.MCVers = MCVers;
 	}
 	
 	// private final static List<NamedPath> found = new ArrayList<>();
@@ -85,12 +52,12 @@ public class TransformerCompat implements ITransformationService {
 		
 		Config.configProvider();
 		if (Config.getLoadOnlyVersDir()) {
-			modRoot = new File(MODSDIR + String.valueOf(FSC) + MCVers);
+			modRoot = new File(SH.getModsDir() + String.valueOf(FSC) + SH.getMCVers());
 		}
 		if (modRoot.exists()) {
-			LOGGER.info("Setting {} as modroot!", StructuredModLoader.relPath(modRoot, GAMEDIR));
+			LOGGER.info("Setting {} as modroot!", StructuredModLoader.relPath(modRoot, SH.getGameDir()));
 		} else {
-			LOGGER.error("{} mods folder doesn't exist! Ignoring config value!", MCVers);
+			LOGGER.error("{} mods folder doesn't exist! Ignoring config value!", SH.getMCVers());
 		}
 		
 		try {
@@ -110,16 +77,34 @@ public class TransformerCompat implements ITransformationService {
 		try (ZipFile zf = new ZipFile(new File(path.toUri()))) {
 			if (zf.getEntry("META-INF/services/cpw.mods.modlauncher.api.ITransformationService") != null) {
 				// read file contents, add class in contents to list.
-				LOGGER.info(LogMarkers.SCAN, "Found transformation service(s) in \"{}\":", StructuredModLoader.relPath(path.toFile(), MODSDIR));
+				LOGGER.info(LogMarkers.SCAN, "Found transformation service(s) in \"{}\":", StructuredModLoader.relPath(path.toFile(), SH.getModsDir()));
 				ArrayList<String> transformerList = new ArrayList<String>(new BufferedReader(
 						new InputStreamReader(zf.getInputStream(zf.getEntry("META-INF/services/cpw.mods.modlauncher.api.ITransformationService")), "UTF-8"))
 								.lines().toList());
-				for (int i; i < transformerList.size(); i++) {
+				
+				ArrayList<ITransformer> transformers = SH.getTransformers();
+				for (int i = 0; i < transformerList.size(); i++) {
 					LOGGER.info(LogMarkers.SCAN, "\"{}\"", transformerList.get(i).toString());
-					transformers.add(Class.forName(transformerList.get(i)));
+					Class<?> TransClass = null;
+					try {
+						TransClass = Class.forName(transformerList.get(i));
+						try {
+							transformers.add((ITransformer) TransClass.newInstance());
+						} catch (InstantiationException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					/* TODO THIS IS A MESS... (See decompiled optifine.OptiFineTransformationService.class) */
 					// javadecompilers.com
 				}
+				SH.setTransformers(transformers);
 				
 			}
 			zf.close();
@@ -132,40 +117,44 @@ public class TransformerCompat implements ITransformationService {
 		return wasConstructed;
 	}
 	
-	@Override
 	public String name() {
-		return "structuredmodmoader";
+		return "SMLTransformer";
 	}
 	
-	@Override
 	public void initialize(IEnvironment environment) {
 		// TODO *shrug*
 	}
 	
-	@Override
+	@SuppressWarnings("unchecked")
 	public void onLoad(IEnvironment env, Set<String> otherServices) throws IncompatibleEnvironmentException {
-		// TODO There should be no incompatibilities...?
 		
+		// Get MCVersion from here:
+		final Optional<String> mcVer = env.getProperty((TypesafeMap.Key) IEnvironment.Keys.VERSION.get());
+		if (!mcVer.isEmpty())
+			SH.setMCVers(mcVer.get());
+		else
+			LOGGER.error("CANT GET MC VERSION!");
+		LOGGER.info(LogMarkers.CORE, "[SML] Registered Minecraft version {}", SH.getMCVers());
 	}
 	
-	@Override
 	public void arguments(BiFunction<String, String, OptionSpecBuilder> argumentBuilder) {
-		mcOption = argumentBuilder.apply("mcVersion", "Minecraft Version number").withRequiredArg().ofType(String.class).required();
-		mcpOption = argumentBuilder.apply("mcpVersion", "MCP Version number").withRequiredArg().ofType(String.class).required();
+		/* TODO get proper usage from Optifine reference
+		mcOption		= argumentBuilder.apply("mcVersion", "Minecraft Version number").withRequiredArg().ofType(String.class).required();
+		mcpOption	= argumentBuilder.apply("mcpVersion", "MCP Version number").withRequiredArg().ofType(String.class).required();
+		*/
 	}
 	
-	@Override
 	public void argumentValues(OptionResult option) {
-		MCVers = option.value(mcOption);
-		MCPVers = option.value(mcpOption);
+		/*
+		SH.setMCVers(option.value(mcOption));
+		SH.setMCPVers(option.value(mcpOption));
+		*/
 	}
 	
-	@SuppressWarnings("rawtypes")
 	public List<ITransformer> transformers() {
 		LOGGER.info(LogMarkers.SCAN, "Starting Transformer scan");
-		scan(GAMEDIR.toPath());
-		transformers.add((ITransformer) transformers);
-		return transformers;
+		scan(SH.getGameDir().toPath());
+		return SH.getTransformers();
 	}
 	
 }

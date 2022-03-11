@@ -25,6 +25,7 @@ run
 gitUp
 gitDown
 testing environment
+reference
 
 # Files from Forge MDK
 forge*changelog.txt

@@ -28,22 +28,22 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	static final char FSC = File.separatorChar;
 	
 	// Paths
-	final static File CONFIGFILE = new File(FMLPaths.CONFIGDIR.get() + String.valueOf(FSC) + "StructuredModLoader.toml");
-	final static List<String> DEFAULTDIRS = Arrays.asList("ignore", "unstable", "disable");
-	final static int DEFAULTDEPTH = 3;
-	final static int MAXDEPTH = 5;
-	final static boolean DEFAULTVERSIONDIRONLY = false;
-	final static File GAMEDIR = FMLPaths.GAMEDIR.get().toFile();
-	final static File MODSDIR = FMLPaths.MODSDIR.get().toFile();
+	final static File				CONFIGFILE					= new File(FMLPaths.CONFIGDIR.get() + String.valueOf(FSC) + "StructuredModLoader.toml");
+	final static List<String>	DEFAULTDIRS					= Arrays.asList("ignore", "unstable", "disable");
+	final static int				DEFAULTDEPTH				= 3;
+	final static int				MAXDEPTH						= 5;
+	final static boolean			DEFAULTVERSIONDIRONLY	= false;
+	final static File				GAMEDIR						= FMLPaths.GAMEDIR.get().toFile();
+	final static File				MODSDIR						= FMLPaths.MODSDIR.get().toFile();
 	
 	// Variables
-	public static List<NamedPath> transformers = new ArrayList<>();
-	public static List<Path> mods = new ArrayList<>();
-	static File modRoot = MODSDIR;
-	static String MCVers = "ERROR";
+	public static List<NamedPath>	transformers	= new ArrayList<>();
+	public static List<Path>		mods				= new ArrayList<>();
+	static File							modRoot			= MODSDIR;
+	static String						MCVers			= "ERROR";
 	
 	public StructuredModLoader() {
-		
+		LOGGER.info("[SML] {} loaded.", this.getClass().getSimpleName());
 		if (!TransformerCompat.getRan()) {
 			new RuntimeException("SML Init didn't run during transformer setup!");
 		}
@@ -183,7 +183,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 			LOGGER.error(LogMarkers.LOADING, "TRANSFORMER LOCATOR DIDNT RUN! Error WILL arise!");
 		}
 		
-		modRoot = TransformerCompat.getModRoot();
+		modRoot = SH.getModRoot();
 		if (modRoot.exists()) {
 			LOGGER.info("Setting {} as modroot!", relPath(modRoot, GAMEDIR));
 		} else {
@@ -216,7 +216,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		}
 		LOGGER.info(modlist);
 		*/
-		TransformerCompat.setMods(mods);
+		SH.setMods(mods);
 		return mods.stream();
 	}
 	
@@ -229,7 +229,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	public void initArguments(Map<String, ?> arguments) {
 		// LOGGER.debug("SML.initArguments({})", arguments);
 		// MCVers = arguments.get("mcVersion").toString();
-		MCVers = TransformerCompat.getMCVers();
+		MCVers = SH.getMCVers();
 	}
 	
 }
