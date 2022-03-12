@@ -84,7 +84,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	 */
 	public static void recurseLoader(File dir, List<String> ignoreWords, int depth, String mode) throws IOException {
 		if (dir != MODSDIR) {
-			LOGGER.info(LogMarkers.SCAN, "Getting Files in \"{}\"", relPath(dir, MODSDIR));
+			LOGGER.info(LogMarkers.SCAN, "Getting {} in \"{}\"", mode, relPath(dir, MODSDIR));
 			File[] subFiles = dir.listFiles(File::isFile);
 			for (int i2 = 0; i2 < subFiles.length; i2++) {
 				if (subFiles[i2].toString().toLowerCase().endsWith(".jar")) {
@@ -177,17 +177,18 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	@Override
 	public Stream<Path> scanCandidates() {
 		// LOGGER.debug("SML.scanCandidates()");
-		LOGGER.info("Structured Mod Loader installed!");
 		// Config.configProvider();
 		if (!TransformerCompat.getRan()) {
 			LOGGER.error(LogMarkers.LOADING, "TRANSFORMER LOCATOR DIDNT RUN! Error WILL arise!");
 		}
 		
+		// DONT fall back to FML MCVers!
 		modRoot = SH.getModRoot();
 		if (modRoot.exists()) {
-			LOGGER.info("Setting {} as modroot!", relPath(modRoot, GAMEDIR));
+			LOGGER.info(LogMarkers.SCAN, "Setting {} as modroot!", relPath(modRoot, GAMEDIR));
 		} else {
-			LOGGER.error("{} mods folder doesn't exist! Ignoring config value!", MCVers);
+			LOGGER.error(LogMarkers.LOADING, "./mods/{}/ doesn't exist! Ignoring config value, falling back!", MCVers);
+			modRoot = FMLPaths.MODSDIR.get().toFile();
 		}
 		
 		String SMLstr = null;

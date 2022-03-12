@@ -57,7 +57,7 @@ public class TransformerCompat implements ITransformationService {
 		if (modRoot.exists()) {
 			LOGGER.info("Setting {} as modroot!", StructuredModLoader.relPath(modRoot, SH.getGameDir()));
 		} else {
-			LOGGER.error("{} mods folder doesn't exist! Ignoring config value!", SH.getMCVers());
+			LOGGER.error("./mods/{}/ folder doesn't exist! Ignoring config value!", SH.getMCVers());
 		}
 		
 		try {
@@ -123,6 +123,13 @@ public class TransformerCompat implements ITransformationService {
 	
 	public void initialize(IEnvironment environment) {
 		// TODO *shrug*
+		// At this point, FML is ready!
+		if (!SH.getMCVers().matches("(.?[0-9])+((alpha)|(beta))?")) {
+			LOGGER.error(LogMarkers.CORE, "[SML] Trying to get MC version from FML:");
+			SH.setMCVers(environment.getProperty(IEnvironment.Keys.VERSION.get()).orElseThrow(() -> new RuntimeException("[SML] GOT NO GAME VERSION!")));
+		}
+		
+		LOGGER.info(LogMarkers.CORE, "[SML] Registered Minecraft version {}", SH.getMCVers());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -132,9 +139,9 @@ public class TransformerCompat implements ITransformationService {
 		final Optional<String> mcVer = env.getProperty((TypesafeMap.Key) IEnvironment.Keys.VERSION.get());
 		if (!mcVer.isEmpty())
 			SH.setMCVers(mcVer.get());
-		else
-			LOGGER.error("CANT GET MC VERSION!");
-		LOGGER.info(LogMarkers.CORE, "[SML] Registered Minecraft version {}", SH.getMCVers());
+		else {
+			LOGGER.error(LogMarkers.CORE, "[SML] CANT GET MC VERSION!");
+		}
 	}
 	
 	public void arguments(BiFunction<String, String, OptionSpecBuilder> argumentBuilder) {
