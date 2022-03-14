@@ -23,6 +23,8 @@ eclipse
 run
 gitUp
 gitDown
+reference
+testing environment
 
 # Files from Forge MDK
 forge*changelog.txt
