@@ -27,14 +27,17 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	// Set Filesystem seperator char.
 	static final char FSC = File.separatorChar;
 	
-	// Paths
-	final static File				CONFIGFILE					= new File(FMLPaths.CONFIGDIR.get() + String.valueOf(FSC) + "StructuredModLoader.toml");
+	// Config Defaults
+	final static File				CONFIGFILE					= new File(
+			SH.getGameDir() + String.valueOf(FSC) + "config" + String.valueOf(FSC) + "StructuredModLoader.toml");
 	final static List<String>	DEFAULTDIRS					= Arrays.asList("ignore", "unstable", "disable");
 	final static int				DEFAULTDEPTH				= 3;
 	final static int				MAXDEPTH						= 5;
 	final static boolean			DEFAULTVERSIONDIRONLY	= false;
-	final static File				GAMEDIR						= FMLPaths.GAMEDIR.get().toFile();
-	final static File				MODSDIR						= FMLPaths.MODSDIR.get().toFile();
+	
+	// Paths
+	static File	GAMEDIR	= null;	// FMLPaths.GAMEDIR.get().toFile();
+	static File	MODSDIR	= null;	// FMLPaths.MODSDIR.get().toFile();
 	
 	// Variables
 	public static List<NamedPath>	transformers	= new ArrayList<>();
@@ -72,7 +75,10 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	*/
 	
 	public static String relPath(File file, File root) {
-		return file.toString().substring(root.toString().length());
+		if (file.toString().length() > root.toString().length())
+			return file.toString().substring(root.toString().length());
+		else
+			return "[Error filepath shorter than rootpath!]";
 	}
 	
 	/**
@@ -187,7 +193,8 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		if (modRoot.exists()) {
 			LOGGER.info(LogMarkers.SCAN, "Setting {} as modroot!", relPath(modRoot, GAMEDIR));
 		} else {
-			LOGGER.error(LogMarkers.LOADING, "./mods/{}/ doesn't exist! Ignoring config value, falling back!", MCVers);
+			LOGGER.error(LogMarkers.LOADING, "{} doesn't exist! Ignoring config value, falling back to {}!", relPath(modRoot, GAMEDIR),
+					FMLPaths.MODSDIR.get());
 			modRoot = FMLPaths.MODSDIR.get().toFile();
 		}
 		

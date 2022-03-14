@@ -50,7 +50,6 @@ public class TransformerCompat implements ITransformationService {
 	
 	private static void scan(final Path gameDirectory) {
 		
-		Config.configProvider();
 		if (Config.getLoadOnlyVersDir()) {
 			modRoot = new File(SH.getModsDir() + String.valueOf(FSC) + SH.getMCVers());
 		}
@@ -124,17 +123,20 @@ public class TransformerCompat implements ITransformationService {
 	public void initialize(IEnvironment environment) {
 		// TODO *shrug*
 		// At this point, FML is ready!
-		if (!SH.getMCVers().matches("(.?[0-9])+((alpha)|(beta))?")) {
+		SH.setGameDir(environment.getProperty(IEnvironment.Keys.GAMEDIR.get()).get().toFile());
+		LOGGER.debug(LogMarkers.LOADING, "[SML] Got gameDir: {}", SH.getGameDir());
+		
+		if (!SH.getMCVers().matches("(.?[0-9])+(-(alpha)|(beta))?")) {
 			LOGGER.error(LogMarkers.CORE, "[SML] Trying to get MC version from FML:");
 			SH.setMCVers(environment.getProperty(IEnvironment.Keys.VERSION.get()).orElseThrow(() -> new RuntimeException("[SML] GOT NO GAME VERSION!")));
 		}
 		
-		LOGGER.info(LogMarkers.CORE, "[SML] Registered Minecraft version {}", SH.getMCVers());
+		LOGGER.debug(LogMarkers.CORE, "[SML] Registered Minecraft version {}", SH.getMCVers());
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void onLoad(IEnvironment env, Set<String> otherServices) throws IncompatibleEnvironmentException {
-		
+		Config.configProvider();
 		// Get MCVersion from here:
 		final Optional<String> mcVer = env.getProperty((TypesafeMap.Key) IEnvironment.Keys.VERSION.get());
 		if (!mcVer.isEmpty())

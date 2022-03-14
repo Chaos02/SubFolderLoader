@@ -24,6 +24,9 @@ jobs:
   build:
     name: Build StructuredModLoader
     runs-on: ${{ matrix.os }}
+    environment: 
+        name: Release
+        url: https://github.com/Chaos02/SubFolderLoader/settings/environments/432189755/edit
     strategy:
       matrix:
         java: ['17','18']
@@ -54,8 +57,8 @@ jobs:
       - name: Get latest file
         run: powershell -command 'echo ::set-env name=File::(Get-ChildItem -Path build/libs | Sort-Object LastAccessTime -Descending | Select-Object -First 1)'
       - name: Publish to GitHub
-        run: .github/workflows/Scripts/GitHubRelease/GitHubRelease -File $File -Token .github/workflows/Scripts/GitHub_token.key -OwnRep github.repository -ChangeLog $changelog
+        run: .github/workflows/Scripts/GitHubRelease/GitHubRelease -File $File -Token ${{ env.GH_token }} -OwnRep github.repository -ChangeLog $changelog
         shell: powershell
       - name: Publish to CurseForge
-        run: .github/workflows/Scripts/CurseForgeRelease/CurseForgeRelease -File $File -APIKey .github/workflows/Scripts/CurseForge_token.key -ProjectID $projectid -ChangeLog $changelog
+        run: .github/workflows/Scripts/CurseForgeRelease/CurseForgeRelease -File $File -APIKey ${{ env.CF_token }} -ProjectID $projectid -ChangeLog $changelog
         shell: powershell

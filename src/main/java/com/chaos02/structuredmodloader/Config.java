@@ -12,8 +12,6 @@ import com.electronwill.nightconfig.core.ConfigSpec;
 import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
-import cpw.mods.modlauncher.api.IEnvironment;
-
 public class Config {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = StructuredModLoader.LOGGER;
@@ -28,7 +26,7 @@ public class Config {
 	private final static int				MAXDEPTH						= StructuredModLoader.MAXDEPTH;
 	private final static boolean			DEFAULTVERSIONDIRONLY	= StructuredModLoader.DEFAULTVERSIONDIRONLY;
 	
-	private final static File GAMEDIR = new File(IEnvironment.Keys.GAMEDIR.get().toString());;
+	private final static File GAMEDIR = new File(SH.getGameDir().toString());;
 	
 	// Variables
 	final static char[] badChars = { FSC };
