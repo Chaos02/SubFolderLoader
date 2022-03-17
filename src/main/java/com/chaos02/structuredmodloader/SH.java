@@ -8,9 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cpw.mods.modlauncher.api.IEnvironment;
 import cpw.mods.modlauncher.api.ITransformer;
-import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.LogMarkers;
 
 public class SH {
@@ -19,14 +17,14 @@ public class SH {
 	private static final char		FSC		= File.separatorChar;
 	
 	// Constants
-	private static File	gameDir	= new File(IEnvironment.Keys.GAMEDIR.get().toString());
-	private static File	modsDir	= new File(gameDir.toString() + String.valueOf(FSC) + FMLPaths.MODSDIR.toString());
+	private static Path	gameDir	= null;
+	private static Path	modsDir	= null;
 	
 	// Variables
 	@SuppressWarnings("rawtypes")
 	private static ArrayList<ITransformer>	transformers	= new ArrayList<>();
 	private static List<Path>					mods				= new ArrayList<>();
-	private static File							modRoot			= modsDir;
+	private static Path							modRoot			= modsDir;
 	private static String						MCVers			= "ERROR";
 	private static String						MCPVers			= "ERROR";
 	
@@ -34,19 +32,19 @@ public class SH {
 		LOGGER.debug(LogMarkers.LOADING, "[SML] Initialized Variable storage.");
 	}
 	
-	public static File getGameDir() {
+	public static Path getGameDir() {
 		return gameDir;
 	}
 	
-	public static void setGameDir(File gAMEDIR) {
-		gameDir = gAMEDIR;
+	public static void setGameDir(Path path) {
+		gameDir = path;
 	}
 	
-	public static File getModsDir() {
+	public static Path getModsDir() {
 		return modsDir;
 	}
 	
-	public static void setModsDir(File mODSDIR) {
+	public static void setModsDir(Path mODSDIR) {
 		modsDir = mODSDIR;
 	}
 	
@@ -68,11 +66,11 @@ public class SH {
 		SH.mods = mods;
 	}
 	
-	public static File getModRoot() {
+	public static Path getModRoot() {
 		return modRoot;
 	}
 	
-	public static void setModRoot(File modRoot) {
+	public static void setModRoot(Path modRoot) {
 		SH.modRoot = modRoot;
 	}
 	

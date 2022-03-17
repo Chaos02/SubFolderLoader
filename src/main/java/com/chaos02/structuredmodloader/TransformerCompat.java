@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.zip.ZipFile;
@@ -21,9 +21,11 @@ import cpw.mods.modlauncher.api.ITransformationService;
 import cpw.mods.modlauncher.api.ITransformer;
 import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
 import cpw.mods.modlauncher.api.LamdbaExceptionUtils;
-import cpw.mods.modlauncher.api.TypesafeMap;
 import joptsimple.ArgumentAcceptingOptionSpec;
+import joptsimple.OptionParser;
 import joptsimple.OptionSpecBuilder;
+import joptsimple.util.PathConverter;
+import joptsimple.util.PathProperties;
 import net.minecraftforge.fml.loading.LogMarkers;
 
 @SuppressWarnings("rawtypes")
@@ -34,7 +36,7 @@ public class TransformerCompat implements ITransformationService {
 	// Set Filesystem seperator char.
 	private static final char FSC = File.separatorChar;
 	
-	public static File									modRoot			= SH.getModsDir();
+	public static Path									modRoot			= SH.getModsDir();
 	private ArgumentAcceptingOptionSpec<String>	mcOption;
 	private ArgumentAcceptingOptionSpec<String>	mcpOption;
 	public static boolean								wasConstructed	= false;
@@ -51,9 +53,9 @@ public class TransformerCompat implements ITransformationService {
 	private static void scan(final Path gameDirectory) {
 		
 		if (Config.getLoadOnlyVersDir()) {
-			modRoot = new File(SH.getModsDir() + String.valueOf(FSC) + SH.getMCVers());
+			modRoot = Paths.get(SH.getModsDir() + String.valueOf(FSC) + SH.getMCVers());
 		}
-		if (modRoot.exists()) {
+		if (modRoot.toFile().exists()) {
 			LOGGER.info("Setting {} as modroot!", StructuredModLoader.relPath(modRoot, SH.getGameDir()));
 		} else {
 			LOGGER.error("./mods/{}/ folder doesn't exist! Ignoring config value!", SH.getMCVers());
@@ -66,7 +68,8 @@ public class TransformerCompat implements ITransformationService {
 		}
 	}
 	
-	public static void visitFile(Path path) {
+	public static void visitFile(Path path) { // TODO Maybe need to call
+															// serviceloader on them instead?
 		if (!Files.isRegularFile(path))
 			return;
 		if (!path.toString().endsWith(".jar"))
@@ -76,7 +79,7 @@ public class TransformerCompat implements ITransformationService {
 		try (ZipFile zf = new ZipFile(new File(path.toUri()))) {
 			if (zf.getEntry("META-INF/services/cpw.mods.modlauncher.api.ITransformationService") != null) {
 				// read file contents, add class in contents to list.
-				LOGGER.info(LogMarkers.SCAN, "Found transformation service(s) in \"{}\":", StructuredModLoader.relPath(path.toFile(), SH.getModsDir()));
+				LOGGER.info(LogMarkers.SCAN, "Found transformation service(s) in \"{}\":", StructuredModLoader.relPath(path, SH.getModsDir()));
 				ArrayList<String> transformerList = new ArrayList<String>(new BufferedReader(
 						new InputStreamReader(zf.getInputStream(zf.getEntry("META-INF/services/cpw.mods.modlauncher.api.ITransformationService")), "UTF-8"))
 								.lines().toList());
@@ -120,10 +123,12 @@ public class TransformerCompat implements ITransformationService {
 		return "SMLTransformer";
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void initialize(IEnvironment environment) {
 		// TODO *shrug*
 		// At this point, FML is ready!
-		SH.setGameDir(environment.getProperty(IEnvironment.Keys.GAMEDIR.get()).get().toFile());
+		SH.setGameDir(environment.getProperty(IEnvironment.Keys.GAMEDIR.get()).orElseThrow(() -> new RuntimeException("[SML] GOT NO GAME DIRECTORY!")));
+		
 		LOGGER.debug(LogMarkers.LOADING, "[SML] Got gameDir: {}", SH.getGameDir());
 		
 		if (!SH.getMCVers().matches("(.?[0-9])+(-(alpha)|(beta))?")) {
@@ -134,16 +139,39 @@ public class TransformerCompat implements ITransformationService {
 		LOGGER.debug(LogMarkers.CORE, "[SML] Registered Minecraft version {}", SH.getMCVers());
 	}
 	
+	record DiscoveryData(Path gameDir, String launchTarget) {
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void onLoad(IEnvironment env, Set<String> otherServices) throws IncompatibleEnvironmentException {
+		
+		GetFields test = cpw.mods.modlauncher.ArgumentHandler;
+		
+		final OptionParser	parser			= new OptionParser();
+		final var				gameDir			= parser.accepts("gameDir", "Alternative game directory").withRequiredArg()
+				.withValuesConvertedBy(new PathConverter(PathProperties.DIRECTORY_EXISTING)).defaultsTo(Path.of("."));
+		final var				launchTarget	= parser.accepts("launchTarget", "LauncherService target to launch").withRequiredArg();
+		parser.allowsUnrecognizedOptions();
+		// final OptionSet optionSet = parser.parse(args);
+		// new DiscoveryData(optionSet.valueOf(gameDir),
+		// optionSet.valueOf(launchTarget));
+		// var test = ArgumentHandler.setArgs.gameDir;
+		LOGGER.info(gameDir);
+		LOGGER.info(ArgumentHandler);
+		
+		SH.setGameDir(env.getProperty(IEnvironment.Keys.GAMEDIR.get()).orElseThrow(() -> new RuntimeException("[SML] CANT GET GAME DIRECTORY!")));
 		Config.configProvider();
 		// Get MCVersion from here:
+		/*
 		final Optional<String> mcVer = env.getProperty((TypesafeMap.Key) IEnvironment.Keys.VERSION.get());
 		if (!mcVer.isEmpty())
 			SH.setMCVers(mcVer.get());
 		else {
 			LOGGER.error(LogMarkers.CORE, "[SML] CANT GET MC VERSION!");
 		}
+		*/
+		SH.setMCVers(env.getProperty(IEnvironment.Keys.VERSION.get()).orElseThrow(() -> new RuntimeException("[SML] CANT GET MC VERSION!")));
+		
 	}
 	
 	public void arguments(BiFunction<String, String, OptionSpecBuilder> argumentBuilder) {
@@ -162,7 +190,7 @@ public class TransformerCompat implements ITransformationService {
 	
 	public List<ITransformer> transformers() {
 		LOGGER.info(LogMarkers.SCAN, "Starting Transformer scan");
-		scan(SH.getGameDir().toPath());
+		scan(SH.getGameDir());
 		return SH.getTransformers();
 	}
 	

@@ -1,11 +1,14 @@
 package com.chaos02.structuredmodloader;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.electronwill.nightconfig.core.ConfigSpec;
@@ -14,19 +17,19 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
 public class Config {
 	// Directly reference a log4j logger.
-	private static final Logger LOGGER = StructuredModLoader.LOGGER;
+	private static final Logger LOGGER = LogManager.getLogger();
 	// Set Filesystem seperator char.
 	private static final char FSC = File.separatorChar;
 	
 	/*                   Get Main class constants                       */
 	// Mod paths
-	private final static File				CONFIGFILE					= StructuredModLoader.CONFIGFILE;
+	private final static Path				CONFIGFILE					= StructuredModLoader.CONFIGFILE;
 	private final static List<String>	DEFAULTDIRS					= StructuredModLoader.DEFAULTDIRS;
 	private final static int				DEFAULTDEPTH				= StructuredModLoader.DEFAULTDEPTH;
 	private final static int				MAXDEPTH						= StructuredModLoader.MAXDEPTH;
 	private final static boolean			DEFAULTVERSIONDIRONLY	= StructuredModLoader.DEFAULTVERSIONDIRONLY;
 	
-	private final static File GAMEDIR = new File(SH.getGameDir().toString());;
+	private static Path GAMEDIR = null;
 	
 	// Variables
 	final static char[] badChars = { FSC };
@@ -57,6 +60,7 @@ public class Config {
 	};
 	
 	public static void configProvider() {
+		GAMEDIR = Paths.get(SH.getGameDir().toString());
 		LOGGER.debug("[SML] Loading Config now! ({})", StructuredModLoader.relPath(CONFIGFILE, GAMEDIR));
 		
 		smlSpec.defineInRange("recurseDepth", DEFAULTDEPTH, 0, MAXDEPTH);

@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,21 +29,21 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	static final char FSC = File.separatorChar;
 	
 	// Config Defaults
-	final static File				CONFIGFILE					= new File(
-			SH.getGameDir() + String.valueOf(FSC) + "config" + String.valueOf(FSC) + "StructuredModLoader.toml");
+	final static Path				CONFIGFILE					= Paths
+			.get(SH.getGameDir() + String.valueOf(FSC) + "config" + String.valueOf(FSC) + "StructuredModLoader.toml");
 	final static List<String>	DEFAULTDIRS					= Arrays.asList("ignore", "unstable", "disable");
 	final static int				DEFAULTDEPTH				= 3;
 	final static int				MAXDEPTH						= 5;
 	final static boolean			DEFAULTVERSIONDIRONLY	= false;
 	
 	// Paths
-	static File	GAMEDIR	= null;	// FMLPaths.GAMEDIR.get().toFile();
-	static File	MODSDIR	= null;	// FMLPaths.MODSDIR.get().toFile();
+	static Path	GAMEDIR	= null;	// FMLPaths.GAMEDIR.get().toFile();
+	static Path	MODSDIR	= null;	// FMLPaths.MODSDIR.get().toFile();
 	
 	// Variables
 	public static List<NamedPath>	transformers	= new ArrayList<>();
 	public static List<Path>		mods				= new ArrayList<>();
-	static File							modRoot			= MODSDIR;
+	static Path							modRoot			= MODSDIR;
 	static String						MCVers			= "ERROR";
 	
 	public StructuredModLoader() {
@@ -74,9 +75,9 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	}
 	*/
 	
-	public static String relPath(File file, File root) {
-		if (file.toString().length() > root.toString().length())
-			return file.toString().substring(root.toString().length());
+	public static String relPath(Path file, Path path) {
+		if (file.toString().length() > path.toString().length())
+			return file.toString().substring(path.toString().length());
 		else
 			return "[Error filepath shorter than rootpath!]";
 	}
@@ -88,16 +89,16 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	 * @param mode  transformer or forgemod
 	 * @throws IOException When File mysteriously disappeared
 	 */
-	public static void recurseLoader(File dir, List<String> ignoreWords, int depth, String mode) throws IOException {
+	public static void recurseLoader(Path dir, List<String> ignoreWords, int depth, String mode) throws IOException {
 		if (dir != MODSDIR) {
 			LOGGER.info(LogMarkers.SCAN, "Getting {} in \"{}\"", mode, relPath(dir, MODSDIR));
-			File[] subFiles = dir.listFiles(File::isFile);
+			File[] subFiles = dir.toFile().listFiles(File::isFile);
 			for (int i2 = 0; i2 < subFiles.length; i2++) {
 				if (subFiles[i2].toString().toLowerCase().endsWith(".jar")) {
-					LOGGER.info("Found \"{}\"", relPath(subFiles[i2], MODSDIR));
+					LOGGER.info("Found \"{}\"", relPath(subFiles[i2].toPath(), MODSDIR));
 					/* if (LamdbaExceptionUtils.uncheck(() -> Files.size(subFiles[i2].toPath())) == 0) { */
 					if (Files.size(subFiles[i2].toPath()) == 0) {
-						LOGGER.info("\"{}\": size == 0", relPath(subFiles[i2], MODSDIR));
+						LOGGER.info("\"{}\": size == 0", relPath(subFiles[i2].toPath(), MODSDIR));
 					} else {
 						
 						switch (mode.toLowerCase()) {
@@ -142,15 +143,15 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		} else {
 			LOGGER.info("Skipping root {}", relPath(dir, GAMEDIR)); /* usually no path seen */
 		}
-		File[] subDirs = dir.listFiles(File::isDirectory);
+		File[] subDirs = dir.toFile().listFiles(File::isDirectory);
 		if (subDirs.length > 0) {
 			if (depth >= 0) {
 				for (int j = 0; j < subDirs.length; j++) {
 					if (!Config.getIgnoreWords().stream().anyMatch(subDirs[j].toString()::contains)) {
-						LOGGER.info("Searching for mods in \"{}\"", relPath(subDirs[j], MODSDIR));
-						recurseLoader(subDirs[j], ignoreWords, depth - 1, mode);
+						LOGGER.info("Searching for mods in \"{}\"", relPath(subDirs[j].toPath(), MODSDIR));
+						recurseLoader(subDirs[j].toPath(), ignoreWords, depth - 1, mode);
 					} else {
-						LOGGER.info("Skipping \"{}\" because of config", relPath(subDirs[j], MODSDIR));
+						LOGGER.info("Skipping \"{}\" because of config", relPath(subDirs[j].toPath(), MODSDIR));
 					}
 				}
 			} else {
@@ -190,12 +191,12 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		
 		// DONT fall back to FML MCVers!
 		modRoot = SH.getModRoot();
-		if (modRoot.exists()) {
+		if (modRoot.toFile().exists()) {
 			LOGGER.info(LogMarkers.SCAN, "Setting {} as modroot!", relPath(modRoot, GAMEDIR));
 		} else {
 			LOGGER.error(LogMarkers.LOADING, "{} doesn't exist! Ignoring config value, falling back to {}!", relPath(modRoot, GAMEDIR),
 					FMLPaths.MODSDIR.get());
-			modRoot = FMLPaths.MODSDIR.get().toFile();
+			modRoot = FMLPaths.MODSDIR.get();
 		}
 		
 		String SMLstr = null;
@@ -208,7 +209,7 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		File SMLJAR = new File(SMLstr.substring(0, SMLstr.length() - 5));
 		// mods.add(SMLJAR.toPath());
 		if (mods.contains(SMLJAR.toPath())) {
-			LOGGER.info("Added SML to Forge mod list. ({})", relPath(SMLJAR, GAMEDIR));
+			LOGGER.info("Added SML to Forge mod list. ({})", relPath(SMLJAR.toPath(), GAMEDIR));
 		}
 		try {
 			recurseLoader(modRoot, Config.getIgnoreWords(), Config.getDepth(), "forgemod");
