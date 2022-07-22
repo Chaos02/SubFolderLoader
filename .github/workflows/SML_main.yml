@@ -46,7 +46,7 @@ jobs:
           # Paths within Gradle User Home to exclude from cache.
       - name: Publish to GitHub
         run: pushRelease
-        shell: powershell
+        shell: pwsh
       - name: Publish to CurseForge
         run: pushToCurseForge
-        shell: powershell
+        shell: pwsh
