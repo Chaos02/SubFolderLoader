@@ -9,10 +9,12 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.electronwill.nightconfig.core.ConfigSpec;
 import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import com.mojang.logging.LogUtils;
 
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 //import net.minecraftforge.fml.InterModComms;
@@ -20,13 +22,14 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.LogMarkers;
-import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileModLocator;
+import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
+import net.minecraftforge.forgespi.locating.IModFile;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
 @Mod("structuredmodloader")
-public class StructuredModLoader extends AbstractJarFileModLocator implements IModLocator {
+public class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
 	// Directly reference a log4j logger.
-	private static final org.slf4j.Logger LOGGER = LogUtils.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	// Mod paths
 	final static File CONFIGFILE = new File(FMLPaths.CONFIGDIR.get() + "\\StructuredModLoader.toml");
@@ -180,6 +183,12 @@ public class StructuredModLoader extends AbstractJarFileModLocator implements IM
 	public void initArguments(Map<String, ?> arguments) {
 		// TODO Auto-generated method stub
 		LOGGER.debug("SML.initArguments({})", arguments);
+	}
+
+	@Override
+	public List<IModFile> scanMods() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }
