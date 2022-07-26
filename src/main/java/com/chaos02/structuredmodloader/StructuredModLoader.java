@@ -7,8 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
-
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,11 +22,12 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.LogMarkers;
 import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
+import net.minecraftforge.fml.loading.moddiscovery.ModFile;
 import net.minecraftforge.forgespi.locating.IModFile;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
 @Mod("structuredmodloader")
-public class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
+public  class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -158,8 +158,8 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 	// Implements
 	
 	@Override
-	public Stream<Path> scanCandidates() {
-		LOGGER.debug("SML.scanCandidates()");
+	public List<IModFile> scanMods() {
+		LOGGER.debug("SML.scanMods()");
 		LOGGER.info("Structured Mod Loader installed!");
 		configProvider();
 		recurseJarLoader(MODSDIR, depth);
@@ -171,7 +171,11 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		}
 		LOGGER.info(modlist);
 		*/
-		return mods.stream();
+		
+		// Source: https://github.com/MinecraftForge/MinecraftForge/blob/1.16.x/src/fmllauncher/java/net/minecraftforge/fml/loading/moddiscovery/ModsFolderLocator.java#L47
+		return mods.stream().map(p->ModFile.newFMLInstance(p, this))
+				.peek(f->modJars.compute(f, (mf, fs)->createFileSystem(mf)))
+				.collect(Collectors.toList());
 	}
 	
 	@Override
@@ -185,10 +189,5 @@ public class StructuredModLoader extends AbstractJarFileLocator implements IModL
 		LOGGER.debug("SML.initArguments({})", arguments);
 	}
 
-	@Override
-	public List<IModFile> scanMods() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	
 }
