@@ -14,14 +14,14 @@ out
 .idea
 
 # gradle
-build
+build/*
+!build/libs/
 .gradle
 
 # other
+run/*
+!run/mods
 eclipse
-run
 
 # Files from Forge MDK
 forge*changelog.txt
-
-gitdown/
