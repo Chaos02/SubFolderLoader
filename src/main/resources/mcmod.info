@@ -1,0 +1,16 @@
+[
+{
+  "modid": "structuredmodloader",
+  "name": "StructuredModLoader",
+  "description": "Loads mod files from configurable subfolders \nto provide cleaner modpack structure",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/Chaos02/SubFolderLoader",
+  "updateUrl": "https://raw.githubusercontent.com/Chaos02/SubFolderLoader/main/update.json",
+  "authorList": ["Chaos_02"],
+  "credits": "stiebi99#2124 on Discord without whom it would not have been possible to create this mod!",
+  "logoFile": "StructuredModLoader.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]

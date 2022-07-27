@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import com.electronwill.nightconfig.core.ConfigSpec;
 import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.example.examplemod.ExampleMod;
 
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 //import net.minecraftforge.fml.InterModComms;
@@ -26,7 +27,7 @@ import net.minecraftforge.fml.loading.moddiscovery.ModFile;
 import net.minecraftforge.forgespi.locating.IModFile;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
-@Mod("structuredmodloader")
+@Mod(modid = "structuredmodloader", name = "StructuredModLoader", version = "1.0")
 public  class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = LogManager.getLogger();
