@@ -4,7 +4,7 @@ plugins {
     id 'net.minecraftforge.gradle' version '5.1.+'
 }
 
-version = "1.19-1.1.0" + project.minecraft.version
+version = '1.19-1.0.0'
 group = 'com.chaos02.structuredmodloader' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'StructuredModLoader'
 
@@ -180,48 +180,4 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
-
-// Create API library zip
-// Warning: This jar will be reobfuscated! Its only used to package it with the universal jar
-task JiJ(type: Jar) {
-	from(sourceSets.main.output) {
-		// only include the classes from our API packages
-        include "**/SMLMod/**"
-    }
-    classifier = 'SMLMod'
-    includeEmptyDirs = false
-}
-
-// task to create a jar containing all classes from the main sourceSet output and the api.jar
-// also sets up the manifest attribute 'ContainedDeps' which fml uses to extract the api jar at runtime
-task packedJar(type: Jar, dependsOn: 'SMLMod') {
-    manifest {
-        attributes 'ContainedDeps': "${archivesBaseName}-${version}-SMLMod.jar"
-        
-        attributes([
-                "Specification-Title"     : "StructuredModLoader",
-                "Specification-Vendor"    : "Chaos_02",
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : "Chaos_02",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
-    from(sourceSets.main.output) {
-        // exclude the API classes, those will be included as their own jar
-        exclude('**/SMLMod/**')
-    }
-    from("${buildDir}/libs") {
-        include("*-${version}-SMLMod.jar")
-    }
-
-    classifier = 'universal'
-}
-
-// tell forge gradle to reobfuscate our jars
-reobf {
-    JiJ { }
-    packedJar { }
 }
