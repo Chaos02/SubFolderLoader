@@ -23,10 +23,8 @@ import net.minecraftforge.fml.loading.LogMarkers;
 import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileModLocator;
 import net.minecraftforge.forgespi.locating.IModLocator;
 
-@Mojo("structuredmodloader")
+@Mod("structuredmodloader")
 public class StructuredModLoader extends AbstractJarFileModLocator implements IModLocator {
-	@GrabEventBus(EventBus.FORGE)
-	private final IEventBus grabbedForgeBus
 	// Directly reference a log4j logger.
 	private static final org.slf4j.Logger LOGGER = LogUtils.getLogger();
 	
