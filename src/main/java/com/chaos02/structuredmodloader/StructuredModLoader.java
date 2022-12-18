@@ -1,5 +1,18 @@
 package com.chaos02.structuredmodloader;
 
+import com.electronwill.nightconfig.core.ConfigSpec;
+import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.LogMarkers;
+import net.minecraftforge.fml.loading.moddiscovery.ClasspathLocator;
+import net.minecraftforge.forgespi.locating.IModLocator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -9,24 +22,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.electronwill.nightconfig.core.ConfigSpec;
-import com.electronwill.nightconfig.core.ConfigSpec.CorrectionListener;
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-//import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fml.loading.LogMarkers;
-import net.minecraftforge.fml.loading.moddiscovery.AbstractJarFileLocator;
-import net.minecraftforge.forgespi.locating.IModLocator;
-
 @Mod("structuredmodloader")
-public class StructuredModLoader extends AbstractJarFileLocator implements IModLocator {
+public class StructuredModLoader extends ClasspathLocator implements IModLocator {
 	// Directly reference a log4j logger.
 	private static final Logger LOGGER = LogManager.getLogger();
 	
